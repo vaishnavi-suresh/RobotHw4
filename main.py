@@ -10,6 +10,7 @@ from viam.components.encoder import Encoder
 from viam.components.movement_sensor import MovementSensor
 from viam.services.vision import VisionClient
 from viam.media.utils.pil import pil_to_viam_image, viam_to_pil_image
+from viam.components.slam import SLAM #double check this import statement
 import threading
 import time
 
@@ -20,6 +21,8 @@ async def connect():
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
+async def map():
+
 
 
 
@@ -29,6 +32,7 @@ async def main():
     camera = Camera.from_robot(machine, camera_name)
     base = Base.from_robot(machine, "viam_base")
     my_detector = VisionClient.from_robot(machine, "color_detector")
+    myslam = SLAM.from_robot(machine,'slam-1')
     frame = await camera.get_image(mime_type="image/jpeg")
     pil_frame = viam_to_pil_image(frame)
 
