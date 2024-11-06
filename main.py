@@ -21,7 +21,7 @@ async def connect():
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
-async def map():
+#async def map():
 
 
 
@@ -35,13 +35,6 @@ async def main():
     myslam = SLAM.from_robot(machine,'slam-1')
     frame = await camera.get_image(mime_type="image/jpeg")
     pil_frame = viam_to_pil_image(frame)
-
-
-    
-
-
-        
-
 
     await machine.close()
 
