@@ -1,42 +1,56 @@
 import asyncio
-
+from viam.components.base import Base
 from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
-from viam.components.board import Board
-from viam.components.motor import Motor
-from viam.components.base import Base
-from viam.components.camera import Camera
-from viam.components.encoder import Encoder
-from viam.components.movement_sensor import MovementSensor
-from viam.services.vision import VisionClient
-from viam.media.utils.pil import pil_to_viam_image, viam_to_pil_image
-from viam.components.slam import SLAM #double check this import statement
-import threading
-import time
+from viam.services.slam import SLAM
 
 async def connect():
-    opts = RobotClient.Options.with_api_key(
-        api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
-        api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
+    creds = Credentials(
+        type='robot-location-secret',
+        payload='SECRET_FROM_VIAM_APP'
     )
-    return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
+    opts = RobotClient.Options(
+        refresh_interval=0,
+        dial_options=DialOptions(credentials=creds)
+    )
+    return await RobotClient.at_address('ADDRESS_FROM_VIAM_APP', opts)
 
-#async def map():
+async def get_position(slam):
+    position = await slam.get_position()
+    return position['x'], position['y']
 
+async def moveInSquare(base, slam, base_coords):
+    for _ in range(4):
+        await base.move_straight(velocity=500, distance=500)
+        print("move straight")
+        await base.spin(velocity=100, angle=90)
+        print("spin 90 degrees")
 
-
+        # Retrieve and print current position
+        x, y = await get_position(slam)
+        print(f"Current position: ({x}, {y})")
+        
+        # If far from base, calculate and adjust path to return
+        if abs(x - base_coords[0]) > threshold or abs(y - base_coords[1]) > threshold:
+            print("Rover is off-course, recalculating path to base.")
+            # Here, implement logic to guide the rover back to base_coords
 
 async def main():
-    machine = await connect()
-    camera_name = "cam"
-    camera = Camera.from_robot(machine, camera_name)
-    base = Base.from_robot(machine, "viam_base")
-    my_detector = VisionClient.from_robot(machine, "color_detector")
-    myslam = SLAM.from_robot(machine,'slam-1')
-    frame = await camera.get_image(mime_type="image/jpeg")
-    pil_frame = viam_to_pil_image(frame)
+    robot = await connect()
+    print('Resources:', robot.resource_names)
 
-    await machine.close()
+    roverBase = Base.from_robot(robot, 'viam_base')
+    slam = SLAM.from_robot(robot, 'slam_service')  # Initialize SLAM
+
+    # Set the base starting coordinates
+    x0, y0 = await get_position(slam)
+    base_coords = (x0, y0)
+    print(f"Base coordinates: ({x0}, {y0})")
+
+    # Move in a square and maintain base coordinates
+    await moveInSquare(roverBase, slam, base_coords)
+
+    await robot.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
