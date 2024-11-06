@@ -2,8 +2,7 @@ import asyncio
 from viam.components.base import Base
 from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
-from viam.services.slam import SLAM
-
+from viam.services.slam import SLAMClient
 async def connect():
     opts = RobotClient.Options.with_api_key(
         api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
@@ -36,7 +35,7 @@ async def main():
     print('Resources:', robot.resource_names)
 
     roverBase = Base.from_robot(robot, 'viam_base')
-    slam = SLAM.from_robot(robot, 'slam-1')  # Initialize SLAM
+    slam = SLAMClient.from_robot(robot, 'slam-1')  # Initialize SLAM
 
     # Set the base starting coordinates
     x0, y0 = await get_position(slam)
