@@ -36,7 +36,7 @@ async def main():
     print('Resources:', robot.resource_names)
 
     roverBase = Base.from_robot(robot, 'viam_base')
-    slam = SLAM.from_robot(robot, 'slam_service')  # Initialize SLAM
+    slam = SLAM.from_robot(robot, 'slam-1')  # Initialize SLAM
 
     # Set the base starting coordinates
     x0, y0 = await get_position(slam)
