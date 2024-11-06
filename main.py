@@ -5,15 +5,11 @@ from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAM
 
 async def connect():
-    creds = Credentials(
-        type='robot-location-secret',
-        payload='SECRET_FROM_VIAM_APP'
+    opts = RobotClient.Options.with_api_key(
+        api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
+        api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
     )
-    opts = RobotClient.Options(
-        refresh_interval=0,
-        dial_options=DialOptions(credentials=creds)
-    )
-    return await RobotClient.at_address('ADDRESS_FROM_VIAM_APP', opts)
+    return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
 async def get_position(slam):
     position = await slam.get_position()
