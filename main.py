@@ -40,7 +40,8 @@ async def main():
 
     # Set the base starting coordinates
     x,y = await get_position(slam)
-    print(x+ ' '+y)
+    print(x)
+    print(y)
     
     #base_coords = (x0, y0)
     #print(f"Base coordinates: ({x0}, {y0})")
