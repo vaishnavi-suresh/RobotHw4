@@ -60,8 +60,6 @@ async def goToZero(x,y,theta,base):
             await base.spin(-90,50)
             await base.move_straight(int(np.abs(y)),100)
 
-    await base.move_straight(int(np.abs(x)),100)
-
 
 
 
@@ -71,14 +69,14 @@ async def navigate_path(posArr,i,slam,base):
     x = pos.x
     y = pos.y
     theta = pos.theta
-    k = checkPosition(posArr,i,slam,base)
+    k = await checkPosition(posArr,i,slam,base)
 
     while k < len(posArr):
         #function to check if the robot is in the correct position
         if theta != posArr[k][2]:
             await base.spin(posArr[k][2]-theta,50) #set velocity as needed
         await base.move_straight(100,100) #scale up distance by 100
-        k = checkPosition(posArr,i,slam,base)
+        k = await checkPosition(posArr,i,slam,base)
 
         
 
