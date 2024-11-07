@@ -136,8 +136,8 @@ async def main():
         wp[i+30][1]=10-i
         wp[i+30][2]=0
     
-    goToZero(x,y,theta,base)
-    navigate_path(wp,0,slam,base)
+    await goToZero(x,y,theta,base)
+    await navigate_path(wp,0,slam,base)
 
     await robot.close()
 
