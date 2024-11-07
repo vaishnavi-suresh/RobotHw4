@@ -3,6 +3,7 @@ from viam.components.base import Base
 from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
+import numpy as np
 async def connect():
     opts = RobotClient.Options.with_api_key(
         api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
@@ -42,6 +43,20 @@ async def main():
     x,y = await get_position(slam)
     print(x)
     print(y)
+
+    #get a set of waypoints to track and populate them
+    wp = np.zeros((40,2))
+    for i in range(10):
+        wp[i][0]=i
+        wp[i+10][0]=10
+        wp[i+10][1]=i
+        wp[i+20][1]=10
+        wp[i+20][1]=10-i
+        wp[i+30][0]=0
+        wp[i+30][1]=10-i
+    print(wp)
+    
+
     
     #base_coords = (x0, y0)
     #print(f"Base coordinates: ({x0}, {y0})")
