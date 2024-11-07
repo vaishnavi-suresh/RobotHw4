@@ -34,7 +34,7 @@ async def checkPosition (posArr,i,slam,base):
             closestIndex = j
     toRotate = np.arccos((posArr[closestIndex][1]-x)/closest)-theta
     await base.spin(toRotate, 50) #set velocity as needed
-    await base.move_straight(int(closest))
+    await base.move_straight(int(closest),100)
     return closestIndex
 
 async def goToZero(x,y,theta,base):
@@ -60,7 +60,7 @@ async def goToZero(x,y,theta,base):
             await base.spin(-90,50)
             await base.move_straight(np.abs(y),100)
 
-    await base.move_straight(np.abs(x))
+    await base.move_straight(np.abs(x),100)
 
 
 
@@ -77,7 +77,7 @@ async def navigate_path(posArr,i,slam,base):
         #function to check if the robot is in the correct position
         if theta != posArr[k][2]:
             await base.spin(posArr[k][2]-theta,50) #set velocity as needed
-        await base.move_straight(100) #scale up distance by 100
+        await base.move_straight(100,100) #scale up distance by 100
         k = checkPosition(posArr,i,slam,base)
 
         
