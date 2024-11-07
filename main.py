@@ -10,10 +10,11 @@ async def connect():
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
+
 async def get_position(slam):
     position = await slam.get_position()
-    return position['x'], position['y']
-
+    return position
+"""
 async def moveInSquare(base, slam, base_coords):
     for _ in range(4):
         await base.move_straight(velocity=500, distance=500)
@@ -29,7 +30,7 @@ async def moveInSquare(base, slam, base_coords):
         if abs(x - base_coords[0]) > threshold or abs(y - base_coords[1]) > threshold:
             print("Rover is off-course, recalculating path to base.")
             # Here, implement logic to guide the rover back to base_coords
-
+"""
 async def main():
     robot = await connect()
     print('Resources:', robot.resource_names)
@@ -38,14 +39,16 @@ async def main():
     slam = SLAMClient.from_robot(robot, 'slam-1')  # Initialize SLAM
 
     # Set the base starting coordinates
-    x0, y0 = await get_position(slam)
-    base_coords = (x0, y0)
-    print(f"Base coordinates: ({x0}, {y0})")
-
+    pos = await get_position(slam)
+    print(pos)
+    #base_coords = (x0, y0)
+    #print(f"Base coordinates: ({x0}, {y0})")
+"""
     # Move in a square and maintain base coordinates
     await moveInSquare(roverBase, slam, base_coords)
 
     await robot.close()
+"""
 
 if __name__ == '__main__':
     asyncio.run(main())
