@@ -13,7 +13,7 @@ async def connect():
 
 async def get_position(slam):
     position = await slam.get_position()
-    return position
+    return position.x, position.y
 """
 async def moveInSquare(base, slam, base_coords):
     for _ in range(4):
@@ -39,9 +39,9 @@ async def main():
     slam = SLAMClient.from_robot(robot, 'slam-1')  # Initialize SLAM
 
     # Set the base starting coordinates
-    pos = await get_position(slam)
-    print(pos)
-    print(pos.dtype)
+    x,y = await get_position(slam)
+    print(x+ ' '+y)
+    
     #base_coords = (x0, y0)
     #print(f"Base coordinates: ({x0}, {y0})")
 """
