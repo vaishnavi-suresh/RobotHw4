@@ -10,8 +10,12 @@ async def connect():
         api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
+async def get_position(slam):
+    position = await slam.get_position()  # This depends on your specific SLAM client
+    return position
 
-async def checkPosition (posArr,i):
+
+async def checkPosition (posArr,i,slam,base):
     a = posArr[i][0]*100
     b = posArr[i][1]*100
     x = await get_position(slam).x
@@ -31,16 +35,16 @@ async def checkPosition (posArr,i):
     await base.move_straight(closest)
     return closestIndex
 
-async def goToZero(x,y,theta):
+async def goToZero(x,y,theta,base):
     if x<0:
         await base.spin(-theta,50) #adjust velocity as needed
         await base.move_straight(np.abs(x),100)
         if y<0:
             await base.spin(-90,50)
-            await base.move_straight(np.abs(x),100)
+            await base.move_straight(np.abs(y),100)
         else:
             await base.spin(90,50)
-            await base.move_straight(np.abs(x),100)
+            await base.move_straight(np.abs(y),100)
 
 
 
@@ -49,10 +53,10 @@ async def goToZero(x,y,theta):
         await base.move_straight(np.abs(x),100)
         if y<0:
             await base.spin(90,50)
-            await base.move_straight(np.abs(x),100)
+            await base.move_straight(np.abs(y),100)
         else:
             await base.spin(-90,50)
-            await base.move_straight(np.abs(x),100)
+            await base.move_straight(np.abs(y),100)
 
     await base.move_straight(np.abs(x))
 
@@ -60,18 +64,18 @@ async def goToZero(x,y,theta):
 
 
 
-async def navigate_path(posArr,i):
+async def navigate_path(posArr,i,slam,base):
     x = await get_position(slam).x
     y = await get_position(slam).y
     theta = await get_position(slam).theta
-    k = checkPosition(posArr,i)
+    k = checkPosition(posArr,i,slam,base)
 
     while k < len(posArr):
         #function to check if the robot is in the correct position
         if theta != posArr[k][2]:
             await base.spin(posArr[k][2]-theta,50) #set velocity as needed
         await base.move_straight(100) #scale up distance by 100
-        k = checkPosition(posArr,i)
+        k = checkPosition(posArr,i,slam,base)
 
         
 
@@ -103,7 +107,7 @@ async def main():
     robot = await connect()
     print('Resources:', robot.resource_names)
 
-    roverBase = Base.from_robot(robot, 'viam_base')
+    base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-1')  # Initialize SLAM
 
     # Set the base starting coordinates
@@ -128,8 +132,8 @@ async def main():
         wp[i+30][1]=10-i
         wp[i+30][2]=0
     
-    goToZero(x,y,theta)
-    navigate_path(wp,0)
+    goToZero(x,y,theta,base)
+    navigate_path(wp,0,slam,base)
 
     await robot.close()
 
