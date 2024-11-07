@@ -40,27 +40,27 @@ async def checkPosition (posArr,i,slam,base):
 async def goToZero(x,y,theta,base):
     if x<0:
         await base.spin(-theta,50) #adjust velocity as needed
-        await base.move_straight(np.abs(x),100)
+        await base.move_straight(int(np.abs(x)),100)
         if y<0:
             await base.spin(-90,50)
-            await base.move_straight(np.abs(y),100)
+            await base.move_straight(int(np.abs(y)),100)
         else:
             await base.spin(90,50)
-            await base.move_straight(np.abs(y),100)
+            await base.move_straight(int(np.abs(y)),100)
 
 
 
     else:
         await base.spin(180-theta,50)#adjust velocity as needed
-        await base.move_straight(np.abs(x),100)
+        await base.move_straight(int(np.abs(x)),100)
         if y<0:
             await base.spin(90,50)
-            await base.move_straight(np.abs(y),100)
+            await base.move_straight(int(np.abs(y)),100)
         else:
             await base.spin(-90,50)
-            await base.move_straight(np.abs(y),100)
+            await base.move_straight(int(np.abs(y)),100)
 
-    await base.move_straight(np.abs(x),100)
+    await base.move_straight(int(np.abs(x)),100)
 
 
 
