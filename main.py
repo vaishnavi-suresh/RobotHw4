@@ -18,12 +18,13 @@ async def get_position(slam):
 async def checkPosition (posArr,i,slam,base):
     a = posArr[i][0]*100
     b = posArr[i][1]*100
-    pos = await get_position(slam)
+    pos = await slam.get_position()
     x = pos.x
     y = pos.y
+    theta = pos.theta
     if a-x<50 and b-y <50:
         return i 
-    theta = await get_position(slam).theta
+
     closest = np.sqrt((x-i[0]*100)**2 +(y-i[1]*100)**2)
     closestIndex = 0
     for j,i in enumerate(posArr):
@@ -66,7 +67,7 @@ async def goToZero(x,y,theta,base):
 
 
 async def navigate_path(posArr,i,slam,base):
-    pos = await get_position(slam)
+    pos = await slam.get_position()
     x = pos.x
     y = pos.y
     theta = pos.theta
@@ -113,7 +114,7 @@ async def main():
     slam = SLAMClient.from_robot(robot, 'slam-1')  # Initialize SLAM
 
     # Set the base starting coordinates
-    pos = await get_position(slam)
+    pos = await slam.get_position()
     x = pos.x
     y = pos.y
     theta = pos.theta
