@@ -34,7 +34,7 @@ async def checkPosition (posArr,i,slam,base):
             closestIndex = j
     toRotate = np.arccos((posArr[closestIndex][1]-x)/closest)-theta
     await base.spin(toRotate, 50) #set velocity as needed
-    await base.move_straight(closest)
+    await base.move_straight(int(closest))
     return closestIndex
 
 async def goToZero(x,y,theta,base):
