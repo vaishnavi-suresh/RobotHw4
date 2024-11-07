@@ -41,6 +41,7 @@ async def main():
     # Set the base starting coordinates
     pos = await get_position(slam)
     print(pos)
+    print(pos.dtype)
     #base_coords = (x0, y0)
     #print(f"Base coordinates: ({x0}, {y0})")
 """
