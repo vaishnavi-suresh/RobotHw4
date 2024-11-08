@@ -1,3 +1,4 @@
+```python
 import asyncio
 from viam.components.base import Base
 from viam.robot.client import RobotClient
@@ -10,126 +11,97 @@ class CourseFollower:
         self.base = base
         self.slam = slam
         
-        # Modified parameters to improve stopping behavior
-        self.position_threshold = 150   # Increased to be more lenient with stopping
-        self.angle_threshold = 20       # Reduced for better direction control
-        self.move_speed = 300          # Reduced speed for better control
-        self.rotation_speed = 45       # Reduced for more precise turning
-        self.scale_factor = 1          # Changed to 1 to use direct mm measurements
+        # Control parameters
+        self.position_threshold = 100   # mm
+        self.angle_threshold = 15       # degrees
+        self.move_speed = 150          # mm/s - slower for better control
+        self.rotation_speed = 30       # degrees/s
+        self.max_distance = 200        # Maximum distance to move in one go
+        self.wall_threshold = 700      # Distance to consider for wall detection
+        
+        # Track starting position
+        self.start_x = None
+        self.start_y = None
+        self.start_theta = None
 
-    async def get_position(self):
-        """Get current position from SLAM"""
-        position = await self.slam.get_position()
-        print(f"\nCurrent Position: x={position.x:.2f}mm, y={position.y:.2f}mm, θ={position.theta:.2f}°")
-        return position.x, position.y, position.theta
+    async def initialize_position(self):
+        """Store initial position as reference point"""
+        pos = await self.slam.get_position()
+        self.start_x = pos.x
+        self.start_y = pos.y
+        self.start_theta = pos.theta
+        print(f"Initialized at: x={pos.x:.1f}, y={pos.y:.1f}, θ={pos.theta:.1f}°")
 
-    def get_distance(self, x1, y1, x2, y2):
-        """Calculate Euclidean distance between two points"""
-        dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-        print(f"Distance calculation: ({x1:.1f}, {y1:.1f}) to ({x2:.1f}, {y2:.1f}) = {dist:.1f}mm")
-        return dist
+    async def get_relative_position(self):
+        """Get position relative to starting point"""
+        pos = await self.slam.get_position()
+        if self.start_x is None:
+            await self.initialize_position()
+            return 0, 0, pos.theta
+        
+        rel_x = pos.x - self.start_x
+        rel_y = pos.y - self.start_y
+        print(f"Current relative position: x={rel_x:.1f}, y={rel_y:.1f}, θ={pos.theta:.1f}°")
+        return rel_x, rel_y, pos.theta
 
-    def get_angle_to_target(self, curr_x, curr_y, target_x, target_y, curr_theta):
-        """Calculate angle needed to turn towards target"""
-        dx = target_x - curr_x
-        dy = target_y - curr_y
-        target_angle = math.degrees(math.atan2(dy, dx))
+    async def turn_to_angle(self, target_angle):
+        """Turn to absolute angle"""
+        _, _, curr_theta = await self.get_relative_position()
         angle_diff = target_angle - curr_theta
+        # Normalize to [-180, 180]
+        angle_diff = ((angle_diff + 180) % 360) - 180
         
-        # Normalize angle to [-180, 180]
-        normalized_angle = (angle_diff + 180) % 360 - 180
-        print(f"Angle calculation: target={target_angle:.2f}°, current={curr_theta:.2f}°, needed turn={normalized_angle:.2f}°")
-        return normalized_angle
+        if abs(angle_diff) > self.angle_threshold:
+            print(f"Turning {angle_diff:.1f}° at {self.rotation_speed}°/s")
+            await self.base.spin(angle_diff, self.rotation_speed)
+            await asyncio.sleep(abs(angle_diff)/self.rotation_speed + 0.5)
 
-    async def move_to_position(self, target_point):
-        """Move to target position with position verification"""
-        curr_x, curr_y, curr_theta = await self.get_position()
+    async def move_forward(self, distance):
+        """Move forward with safety check"""
+        if distance > self.max_distance:
+            distance = self.max_distance
         
-        # No scaling needed anymore
-        target_x = target_point[0]
-        target_y = target_point[1]
-        target_theta = target_point[2]
+        print(f"Moving forward {distance:.1f}mm at {self.move_speed}mm/s")
+        await self.base.move_straight(int(distance), self.move_speed)
+        await asyncio.sleep(distance/self.move_speed + 0.5)
+
+    async def move_square_side(self, target_angle, side_length):
+        """Move one side of the square"""
+        print(f"\nMoving square side: angle={target_angle}°, length={side_length}mm")
         
-        print(f"\nMoving to target: x={target_x:.2f}mm, y={target_y:.2f}mm, θ={target_theta:.2f}°")
+        # First turn to the correct angle
+        await self.turn_to_angle(target_angle)
         
-        # Calculate distance and angle to target
-        distance = self.get_distance(curr_x, curr_y, target_x, target_y)
-        print(f"Distance to target: {distance:.2f}mm")
+        # Move in smaller steps
+        remaining_distance = side_length
+        while remaining_distance > 0:
+            step_distance = min(remaining_distance, self.max_distance)
+            await self.move_forward(step_distance)
+            remaining_distance -= step_distance
+            
+            # Brief pause between movements
+            await asyncio.sleep(0.5)
+
+    async def navigate_square(self, side_length):
+        """Navigate a square pattern"""
+        print(f"\nStarting square navigation with {side_length}mm sides")
         
-        # Check if we're already at the target
-        if distance < self.position_threshold:
-            print(f"Already within position threshold ({self.position_threshold}mm)")
-            if abs(target_theta - curr_theta) > self.angle_threshold:
-                angle_adjust = target_theta - curr_theta
-                print(f"Adjusting final orientation by {angle_adjust:.2f}°")
-                await self.base.spin(angle_adjust, self.rotation_speed)
-            return True
-
-        # Calculate and execute turn
-        angle_to_target = self.get_angle_to_target(curr_x, curr_y, target_x, target_y, curr_theta)
-        if abs(angle_to_target) > self.angle_threshold:
-            print(f"Turning {angle_to_target:.2f}° at {self.rotation_speed}°/s")
-            await self.base.spin(angle_to_target, self.rotation_speed)
-            await asyncio.sleep(abs(angle_to_target/self.rotation_speed))  # Wait for turn to complete
-
-        # Move forward with a shorter distance
-        move_distance = min(distance, 200)  # Move in smaller steps
-        print(f"Moving forward {move_distance:.2f}mm at {self.move_speed}mm/s")
-        await self.base.move_straight(int(move_distance), self.move_speed)
-        await asyncio.sleep(move_distance/self.move_speed + 0.5)  # Wait for movement to complete
-
-        # Verify new position
-        new_x, new_y, new_theta = await self.get_position()
-        final_dist = self.get_distance(new_x, new_y, target_x, target_y)
-        print(f"After movement - Distance to target: {final_dist:.2f}mm")
-
-        success = final_dist < self.position_threshold
-        print(f"Movement {'successful' if success else 'failed'}")
-        return success
-
-    def generate_square_path(self, size, points_per_side):
-        """Generate a square path with given size and density"""
-        path = []
+        # Initialize starting position
+        await self.initialize_position()
         
-        # Define corner points (in mm)
-        corners = [
-            (0, 0, 0),
-            (size, 0, 90),
-            (size, size, 180),
-            (0, size, 270),
-            (0, 0, 0)
+        # Define the square movements
+        movements = [
+            (0, side_length),     # Move along X
+            (90, side_length),    # Move along Y
+            (180, side_length),   # Move back along -X
+            (270, side_length),   # Move back along -Y
         ]
         
-        print("\nGenerating square path:")
-        for i in range(len(corners) - 1):
-            start = corners[i]
-            end = corners[i + 1]
-            
-            for j in range(points_per_side):
-                t = j / points_per_side
-                x = start[0] + t * (end[0] - start[0])
-                y = start[1] + t * (end[1] - start[1])
-                theta = start[2]
-                path.append((x, y, theta))
-                print(f"Added waypoint: ({x:.2f}, {y:.2f}, {theta})")
-        
-        return path
-
-    async def follow_path(self, path):
-        """Follow the given path with recovery capability"""
-        current_index = 0  # Start from the beginning
-        
-        while current_index < len(path):
-            print(f"\n--- Following path: Point {current_index}/{len(path)-1} ---")
-            success = await self.move_to_position(path[current_index])
-            
-            if success:
-                print(f"Successfully reached point {current_index}")
-                current_index += 1
-            else:
-                print("Failed to reach point, retrying...")
-                # Optional: Add a small delay before retrying
-                await asyncio.sleep(1)
+        # Execute each movement
+        for angle, length in movements:
+            print(f"\n--- New square side: {angle}° ---")
+            await self.move_square_side(angle, length)
+            await asyncio.sleep(1)  # Pause between sides
 
 async def main():
     opts = RobotClient.Options.with_api_key(
@@ -142,14 +114,15 @@ async def main():
         base = Base.from_robot(robot, 'viam_base')
         slam = SLAMClient.from_robot(robot, 'slam-1')
         
+        # Create course follower
         follower = CourseFollower(base, slam)
         
-        print("\nStarting square path navigation...")
-        path = follower.generate_square_path(300, 5)  # 300mm sides, 5 points per side (reduced points)
-        await follower.follow_path(path)
+        # Navigate a 300mm square
+        await follower.navigate_square(300)
         
     finally:
         await robot.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
+```
