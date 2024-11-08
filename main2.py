@@ -78,7 +78,7 @@ async def goThroughPath(base,slam,wpIndex, posArr):
         await moveToPos(base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
-            goThroughPath(base,slam,wpIndex,posArr)
+            await goThroughPath(base,slam,wpIndex,posArr)
     else:
         wpIndex = await closestToPath(base,slam,posArr)
         await goThroughPath(base,slam,wpIndex,posArr)
