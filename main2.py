@@ -43,7 +43,7 @@ async def findWaypt(base,slam, arrPos):
 
     print(arrPos[minIndex][0] *30)
     print(arrPos[minIndex][1] *30)
-    print(arrPos[minIndex][2] *30)
+    print(arrPos[minIndex][2])
     return minIndex
         
 
