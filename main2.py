@@ -21,7 +21,10 @@ async def moveToPos(base, slam, x,y,theta):
     currTheta = currPos.theta
     toMove = np.arctan((y-currY)/(x-currX))-currTheta
     dist = np.sqrt((y-currY)**2+(x-currX)**2)
+    if x-currX <0:
+        toMove+= 90
     await base.spin(toMove,10)
+
     await base.move_straight(int(dist),50)
     await base.spin(theta-toMove,50)
 
