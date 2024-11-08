@@ -32,7 +32,7 @@ async def moveToPos(base, slam, x,y,theta):
     currY = currPos.y
     currTheta = currPos.theta
     toMove = np.arctan((y-currY)/(x-currX))-currTheta
-    print(toMove)
+    print(f'moving to angle: {toMove}')
     dist = np.sqrt((y-currY)**2+(x-currX)**2)
     if x-currX <0:
         toMove+= 90
@@ -42,6 +42,7 @@ async def moveToPos(base, slam, x,y,theta):
     await base.spin(theta-toMove,50)
 
 async def findWaypt(base,slam, arrPos):
+    print("going to new position")
     pos = await get_position(slam)
     x = pos.x
     y = pos.y
@@ -57,9 +58,9 @@ async def findWaypt(base,slam, arrPos):
             minDist = dist
             minIndex = i
 
-    print(arrPos[minIndex][0] *30)
-    print(arrPos[minIndex][1] *30)
-    print(arrPos[minIndex][2])
+    print(f'trying to go to: x= {arrPos[minIndex][0] *30}')
+    print(f'trying to go to: y= {arrPos[minIndex][1] *30}')
+    print(f'trying to go to: theta= {arrPos[minIndex][2]}')
     return minIndex
 
 async def goThroughPath(base,slam,wpIndex, posArr):
@@ -121,9 +122,9 @@ async def main():
     x = pos.x
     y = pos.y
     theta = pos.theta
-    print(x)
-    print(y)
-    print(theta)
+    print(f'currently at x={x}')
+    print(f'currently at y={y}')
+    print(f'currently at theta={theta}')
     
     wpIndex = await closestToPath(base,slam,wp)
     await goThroughPath(base,slam,wpIndex,wp)
