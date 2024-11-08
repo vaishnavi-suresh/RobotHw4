@@ -126,7 +126,7 @@ async def main():
     print(theta)
     
     wpIndex = await closestToPath(base,slam,wp)
-    goThroughPath(base,slam,wpIndex,wp)
+    await goThroughPath(base,slam,wpIndex,wp)
 
     await robot.close()
 
