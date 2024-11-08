@@ -10,12 +10,12 @@ class CourseFollower:
         self.base = base
         self.slam = slam
         
-        # Adjustable parameters - you may need to tune these
-        self.position_threshold = 100  # mm - increased for more lenient positioning
-        self.angle_threshold = 30      # degrees - increased for more lenient rotation
-        self.move_speed = 800          # mm/s - increased for faster movement
-        self.rotation_speed = 90       # degrees/s - increased for faster rotation
-        self.scale_factor = 30         # Scale factor for converting path coordinates to mm
+        # Modified parameters to improve stopping behavior
+        self.position_threshold = 150   # Increased to be more lenient with stopping
+        self.angle_threshold = 20       # Reduced for better direction control
+        self.move_speed = 300          # Reduced speed for better control
+        self.rotation_speed = 45       # Reduced for more precise turning
+        self.scale_factor = 1          # Changed to 1 to use direct mm measurements
 
     async def get_position(self):
         """Get current position from SLAM"""
@@ -26,6 +26,7 @@ class CourseFollower:
     def get_distance(self, x1, y1, x2, y2):
         """Calculate Euclidean distance between two points"""
         dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+        print(f"Distance calculation: ({x1:.1f}, {y1:.1f}) to ({x2:.1f}, {y2:.1f}) = {dist:.1f}mm")
         return dist
 
     def get_angle_to_target(self, curr_x, curr_y, target_x, target_y, curr_theta):
@@ -44,9 +45,9 @@ class CourseFollower:
         """Move to target position with position verification"""
         curr_x, curr_y, curr_theta = await self.get_position()
         
-        # Scale target coordinates
-        target_x = target_point[0] * self.scale_factor
-        target_y = target_point[1] * self.scale_factor
+        # No scaling needed anymore
+        target_x = target_point[0]
+        target_y = target_point[1]
         target_theta = target_point[2]
         
         print(f"\nMoving to target: x={target_x:.2f}mm, y={target_y:.2f}mm, θ={target_theta:.2f}°")
@@ -55,6 +56,7 @@ class CourseFollower:
         distance = self.get_distance(curr_x, curr_y, target_x, target_y)
         print(f"Distance to target: {distance:.2f}mm")
         
+        # Check if we're already at the target
         if distance < self.position_threshold:
             print(f"Already within position threshold ({self.position_threshold}mm)")
             if abs(target_theta - curr_theta) > self.angle_threshold:
@@ -68,54 +70,28 @@ class CourseFollower:
         if abs(angle_to_target) > self.angle_threshold:
             print(f"Turning {angle_to_target:.2f}° at {self.rotation_speed}°/s")
             await self.base.spin(angle_to_target, self.rotation_speed)
-            await asyncio.sleep(1)  # Give time to complete rotation
+            await asyncio.sleep(abs(angle_to_target/self.rotation_speed))  # Wait for turn to complete
 
-        # Move forward
-        print(f"Moving forward {distance:.2f}mm at {self.move_speed}mm/s")
-        await self.base.move_straight(int(distance), self.move_speed)
-        await asyncio.sleep(1)  # Give time to complete movement
+        # Move forward with a shorter distance
+        move_distance = min(distance, 200)  # Move in smaller steps
+        print(f"Moving forward {move_distance:.2f}mm at {self.move_speed}mm/s")
+        await self.base.move_straight(int(move_distance), self.move_speed)
+        await asyncio.sleep(move_distance/self.move_speed + 0.5)  # Wait for movement to complete
 
         # Verify new position
         new_x, new_y, new_theta = await self.get_position()
         final_dist = self.get_distance(new_x, new_y, target_x, target_y)
         print(f"After movement - Distance to target: {final_dist:.2f}mm")
-        
-        # Final orientation adjustment
-        if abs(target_theta - new_theta) > self.angle_threshold:
-            final_angle_adjust = target_theta - new_theta
-            print(f"Final orientation adjustment: {final_angle_adjust:.2f}°")
-            await self.base.spin(final_angle_adjust, self.rotation_speed)
-            await asyncio.sleep(1)
 
         success = final_dist < self.position_threshold
         print(f"Movement {'successful' if success else 'failed'}")
         return success
 
-    async def find_closest_waypoint(self, path):
-        """Find the closest waypoint in the path"""
-        curr_x, curr_y, _ = await self.get_position()
-        
-        min_dist = float('inf')
-        min_index = 0
-        
-        print("\nFinding closest waypoint:")
-        for i, point in enumerate(path):
-            scaled_x = point[0] * self.scale_factor
-            scaled_y = point[1] * self.scale_factor
-            dist = self.get_distance(curr_x, curr_y, scaled_x, scaled_y)
-            print(f"Waypoint {i}: ({scaled_x:.2f}, {scaled_y:.2f}) - Distance: {dist:.2f}mm")
-            if dist < min_dist:
-                min_dist = dist
-                min_index = i
-        
-        print(f"Closest waypoint is {min_index} at distance {min_dist:.2f}mm")
-        return min_index
-
     def generate_square_path(self, size, points_per_side):
         """Generate a square path with given size and density"""
         path = []
-        size = size / self.scale_factor  # Convert mm to path units
         
+        # Define corner points (in mm)
         corners = [
             (0, 0, 0),
             (size, 0, 90),
@@ -141,7 +117,7 @@ class CourseFollower:
 
     async def follow_path(self, path):
         """Follow the given path with recovery capability"""
-        current_index = await self.find_closest_waypoint(path)
+        current_index = 0  # Start from the beginning
         
         while current_index < len(path):
             print(f"\n--- Following path: Point {current_index}/{len(path)-1} ---")
@@ -151,16 +127,9 @@ class CourseFollower:
                 print(f"Successfully reached point {current_index}")
                 current_index += 1
             else:
-                print("Failed to reach point, finding closest waypoint for recovery")
-                current_index = await self.find_closest_waypoint(path)
-            
-            curr_x, curr_y, _ = await self.get_position()
-            target_x = path[current_index][0] * self.scale_factor
-            target_y = path[current_index][1] * self.scale_factor
-            
-            if self.get_distance(curr_x, curr_y, target_x, target_y) > self.position_threshold * 2:
-                print("Large deviation detected - recalculating path")
-                current_index = await self.find_closest_waypoint(path)
+                print("Failed to reach point, retrying...")
+                # Optional: Add a small delay before retrying
+                await asyncio.sleep(1)
 
 async def main():
     opts = RobotClient.Options.with_api_key(
@@ -175,15 +144,8 @@ async def main():
         
         follower = CourseFollower(base, slam)
         
-        # Adjustable parameters at the top of the class can be modified here
-        # follower.position_threshold = 100  # Increase for more lenient positioning
-        # follower.angle_threshold = 10      # Increase for more lenient rotation
-        # follower.move_speed = 200          # Adjust movement speed
-        # follower.rotation_speed = 20       # Adjust rotation speed
-        # follower.scale_factor = 30         # Adjust scaling of coordinates
-        
         print("\nStarting square path navigation...")
-        path = follower.generate_square_path(300, 10)  # 300mm sides, 10 points per side
+        path = follower.generate_square_path(300, 5)  # 300mm sides, 5 points per side (reduced points)
         await follower.follow_path(path)
         
     finally:
