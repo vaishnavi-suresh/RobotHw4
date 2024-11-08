@@ -80,7 +80,7 @@ async def main():
     print(y)
     print(theta)
     
-    wpIndex = findWaypt(base,slam,wp)
+    wpIndex = await findWaypt(base,slam,wp)
     baseX = wp[wpIndex][0]
     baseY = wp[wpIndex][1]
     baseTheta = wp[wpIndex][2]
