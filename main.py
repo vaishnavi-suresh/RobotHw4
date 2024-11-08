@@ -21,8 +21,8 @@ async def checkPosition (posArr,i,slam,base):
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
-    print(r'this is x [x] and this is supposed to be x [a]')
-    print(r'this is y [y] and this is supposed to be y [b]')
+    print(f'this is x [{x}] and this is supposed to be x [{a}]')
+    print(f'this is y [{y}] and this is supposed to be y [{b}]')
     theta = pos.theta
     if a-x<50 and b-y <50:
         return i 
@@ -34,6 +34,7 @@ async def checkPosition (posArr,i,slam,base):
         if dist<closest:
             closest = dist
             closestIndex = j
+    print(closestIndex)
     toRotate = np.arccos((posArr[closestIndex][1]-x)/closest)-theta
     print(toRotate)
     print(closest)
