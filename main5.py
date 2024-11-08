@@ -311,8 +311,8 @@ async def main():
     
     # Configure robot client with API credentials
     opts = RobotClient.Options.with_api_key(
-        api_key=api_key,
-        api_key_id=api_key_id
+        api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
+        api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
     )
     
     # Connect to the robot
