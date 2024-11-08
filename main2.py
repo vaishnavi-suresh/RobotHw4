@@ -15,7 +15,7 @@ async def get_position(slam):
     return position
 
 async def moveToPos(base, slam, x,y,theta):
-    currPos = get_position(slam)
+    currPos = await get_position(slam)
     currX = currPos.x
     currY = currPos.y
     currTheta = currPos.theta
