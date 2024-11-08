@@ -25,10 +25,10 @@ async def checkPosition (posArr,i,slam,base):
     if a-x<50 and b-y <50:
         return i 
 
-    closest = np.sqrt((x-i[0]*100)**2 +(y-i[1]*100)**2)
+    closest = np.sqrt((x-posArr[i][0]*100)**2 +(y-posArr[i][1]*100)**2)
     closestIndex = 0
     for j,i in enumerate(posArr):
-        dist = np.sqrt((x-i[0]*100)**2 +(y-i[1]*100)**2)
+        dist = np.sqrt((x-posArr[i][0]*100)**2 +(y-posArr[i][1]*100)**2)
         if dist<closest:
             closest = dist
             closestIndex = j
