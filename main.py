@@ -33,32 +33,41 @@ async def checkPosition (posArr,i,slam,base):
             closest = dist
             closestIndex = j
     toRotate = np.arccos((posArr[closestIndex][1]-x)/closest)-theta
+    print(toRotate)
+    print(closest)
+
     await base.spin(toRotate, 50) #set velocity as needed
-    await base.move_straight(int(closest),100)
+    await base.move_straight(int(closest),200)
     return closestIndex
 
 async def goToZero(x,y,theta,base):
     if x<0:
         await base.spin(-theta,50) #adjust velocity as needed
-        await base.move_straight(int(np.abs(x)),100)
+        await base.move_straight(int(np.abs(x)),200)
+        print("moving right")
         if y<0:
             await base.spin(-90,50)
-            await base.move_straight(int(np.abs(y)),100)
+            await base.move_straight(int(np.abs(y)),200)
+            print("moving down")
         else:
             await base.spin(90,50)
-            await base.move_straight(int(np.abs(y)),100)
+            await base.move_straight(int(np.abs(y)),200)
+            print("moving up")
 
 
 
     else:
         await base.spin(180-theta,50)#adjust velocity as needed
-        await base.move_straight(int(np.abs(x)),100)
+        await base.move_straight(int(np.abs(x)),200)
+        print("moving left")
         if y<0:
             await base.spin(90,50)
-            await base.move_straight(int(np.abs(y)),100)
+            await base.move_straight(int(np.abs(y)),200)
+            print("moving down")
         else:
             await base.spin(-90,50)
-            await base.move_straight(int(np.abs(y)),100)
+            await base.move_straight(int(np.abs(y)),200)
+            print("moving up")
 
 
 
@@ -75,7 +84,7 @@ async def navigate_path(posArr,i,slam,base):
         #function to check if the robot is in the correct position
         if theta != posArr[k][2]:
             await base.spin(posArr[k][2]-theta,50) #set velocity as needed
-        await base.move_straight(100,100) #scale up distance by 100
+        await base.move_straight(100,200) #scale up distance by 100
         k = await checkPosition(posArr,i,slam,base)
 
         
