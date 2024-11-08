@@ -15,7 +15,7 @@ async def get_position(slam):
     return position
 
 def getDist (currX, currY, wantX, wantY):
-    return np.sqrt((wantX-currY)**2+(wantY-currX)**2)
+    return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
 
 async def closestToPath(base,slam, arrPos):
     wpIndex = await findWaypt(base,slam,arrPos)
