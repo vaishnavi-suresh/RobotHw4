@@ -36,7 +36,7 @@ async def main():
 
 
     #get a set of waypoints to track and populate them
-    wp = np.zeros((4,3))
+    wp = np.zeros((40,3))
     for i in range(10):
         wp[i][0]=i
         wp[i][2]=90
