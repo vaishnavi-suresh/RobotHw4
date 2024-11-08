@@ -23,9 +23,9 @@ class CourseFollower:
         
         # Define waypoints for square (e.g., 300mm sides)
         self.waypoints = [
-            (300, 0, 0),
-            (300, 300, 90),
-            (0, 300, 180),
+            (1000, 0, 0),
+            (1000, 1000, 90),
+            (0, 1000, 180),
             (0, 0, 270)
         ]
         self.current_wp_index = 0
