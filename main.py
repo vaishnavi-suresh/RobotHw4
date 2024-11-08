@@ -21,6 +21,8 @@ async def checkPosition (posArr,i,slam,base):
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
+    print(r'this is x {x} and this is supposed to be x {a}')
+    print(r'this is y {y} and this is supposed to be y {b}')
     theta = pos.theta
     if a-x<50 and b-y <50:
         return i 
