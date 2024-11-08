@@ -26,7 +26,7 @@ async def moveToPos(base, slam, x,y,theta):
     await base.spin(theta-toMove,50)
 
 async def findWaypt(base,slam, arrPos):
-    pos = get_position(slam)
+    pos = await get_position(slam)
     x = pos.x
     y = pos.y
     theta = pos.theta
@@ -40,7 +40,7 @@ async def findWaypt(base,slam, arrPos):
         if dist<minDist:
             minDist = dist
             minIndex = i
-    return i
+    return minIndex
         
 
 
