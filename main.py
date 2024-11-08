@@ -14,6 +14,13 @@ async def get_position(slam):
     position = await slam.get_position()  # This depends on your specific SLAM client
     return position
 
+async def moveUntilClose(base,slam,x,y):
+    pos = await slam.get_position()
+    a = pos.x
+    b = pos.y
+    while np.abs(a-x)>50 or np.abs(b-y)>50:
+        base.move_straight(10,10)
+
 
 async def checkPosition (posArr,i,slam,base):
     a = posArr[i][0]*100
@@ -40,34 +47,34 @@ async def checkPosition (posArr,i,slam,base):
     print(closest)
 
     await base.spin(toRotate, 50) #set velocity as needed
-    await base.move_straight(int(closest),50)
+    moveUntilClose(base,slam,a,b)
     return closestIndex
 
-async def goToZero(x,y,theta,base):
+async def goToZero(x,y,theta,base,slam):
     if x<0:
         await base.spin(-theta,50) #adjust velocity as needed
-        await base.move_straight(int(np.abs(x)),50)
+        moveUntilClose(base,slam,0,y)
         print("moving right")
         if y<0:
             await base.spin(-90,50)
-            await base.move_straight(int(np.abs(y)),50)
+            moveUntilClose(base,slam,0,0)
             print("moving down")
         else:
             await base.spin(90,50)
-            await base.move_straight(int(np.abs(y)),50)
+            moveUntilClose(base,slam,0,0)
             print("moving up")
 
     else:
         await base.spin(180-theta,50)#adjust velocity as needed
-        await base.move_straight(int(np.abs(x)),50)
+        moveUntilClose(base,slam,0,y)
         print("moving left")
         if y<0:
             await base.spin(90,50)
-            await base.move_straight(int(np.abs(y)),50)
+            moveUntilClose(base,slam,0,0)
             print("moving down")
         else:
             await base.spin(-90,50)
-            await base.move_straight(int(np.abs(y)),50)
+            moveUntilClose(base,slam,0,0)
             print("moving up")
 
 
@@ -144,7 +151,7 @@ async def main():
         wp[i+30][1]=10-i
         wp[i+30][2]=0
     
-    await goToZero(x,y,theta,base)
+    await goToZero(x,y,theta,base,slam)
     await navigate_path(wp,0,slam,base)
 
     await robot.close()
