@@ -20,6 +20,7 @@ async def moveToPos(base, slam, x,y,theta):
     currY = currPos.y
     currTheta = currPos.theta
     toMove = np.arctan((y-currY)/(x-currX))-currTheta
+    print(toMove)
     dist = np.sqrt((y-currY)**2+(x-currX)**2)
     if x-currX <0:
         toMove+= 90
