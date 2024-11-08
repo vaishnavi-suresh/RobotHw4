@@ -28,10 +28,10 @@ async def checkPosition (posArr,i,slam,base):
     closest = np.sqrt((x-a)**2 +(y-b)**2)
     closestIndex = 0
     for j,i in enumerate(posArr):
-        dist = np.sqrt((x-j[0]*100)**2 +(y-j[1]*100)**2)
+        dist = np.sqrt((x-i[0]*100)**2 +(y-i[1]*100)**2)
         if dist<closest:
             closest = dist
-            closestIndex = i
+            closestIndex = j
     toRotate = np.arccos((posArr[closestIndex][1]-x)/closest)-theta
     print(toRotate)
     print(closest)
