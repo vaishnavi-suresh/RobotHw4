@@ -25,6 +25,27 @@ async def moveToPos(base, slam, x,y,theta):
     await base.move_straight(int(dist),50)
     await base.spin(theta-toMove,50)
 
+async def findWaypt(base,slam, arrPos):
+    pos = get_position(slam)
+    x = pos.x
+    y = pos.y
+    theta = pos.theta
+    minDist = np.sqrt((y-arrPos[0][0])**2+(x-arrPos[0][1])**2)
+    minIndex = 0
+    for i, wp in enumerate(arrPos):
+        wpX = arrPos[i][0] *30
+        wpY = arrPos[i][1] *30
+        wpTheta = arrPos[i][2]
+        dist = np.sqrt((y-wpY)**2+(x-wpX)**2)
+        if dist<minDist:
+            minDist = dist
+            minIndex = i
+    return i
+        
+
+
+
+
 
 async def main():
     robot = await connect()
@@ -59,7 +80,11 @@ async def main():
     print(y)
     print(theta)
     
-    await moveToPos(base,slam,0,0,0)
+    wpIndex = findWaypt(base,slam,wp)
+    baseX = wp[wpIndex][0]
+    baseY = wp[wpIndex][1]
+    baseTheta = wp[wpIndex][2]
+    await moveToPos(base,slam,baseX,baseY,baseTheta)
 
     await robot.close()
 
