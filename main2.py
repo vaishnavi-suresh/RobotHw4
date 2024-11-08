@@ -14,6 +14,18 @@ async def get_position(slam):
     position = await slam.get_position()  # This depends on your specific SLAM client
     return position
 
+def getDist (currX, currY, wantX, wantY):
+    np.sqrt((wantX-currY)**2+(wantY-currX)**2)
+
+async def closestToPath(base,slam, arrPos):
+    wpIndex = await findWaypt(base,slam,arrPos)
+    baseX = arrPos[wpIndex][0]
+    baseY = arrPos[wpIndex][1]
+    baseTheta = arrPos[wpIndex][2]
+    await moveToPos(base,slam,baseX,baseY,baseTheta)
+    return wpIndex
+    
+
 async def moveToPos(base, slam, x,y,theta):
     currPos = await get_position(slam)
     currX = currPos.x
@@ -49,6 +61,31 @@ async def findWaypt(base,slam, arrPos):
     print(arrPos[minIndex][1] *30)
     print(arrPos[minIndex][2])
     return minIndex
+
+async def goThroughPath(base,slam,wpIndex, posArr):
+    #iterate through waypoints
+    #check if the next point is within 50 mm of the current pos
+    #if not, use the goto function on the closest position
+    # if so, use the go to function on the next position in the posArr 
+    pos = await get_position(slam)
+    currX = pos.x
+    currY = pos.y
+    wpX = posArr[wpIndex][0]*30
+    wpY = posArr[wpIndex][1]*30
+    wpTheta = posArr[wpIndex][2]
+    dist = getDist(currX,currY,wpX,wpY)
+    if dist <40:
+        await moveToPos(base,slam,wpX,wpY,wpTheta)
+        wpIndex+=1
+        if wpIndex <len(posArr):
+            goThroughPath(base,slam,wpIndex,posArr)
+    else:
+        wpIndex = await closestToPath(base,slam,posArr)
+        goThroughPath(base,slam,wpIndex,posArr)
+
+    
+
+
         
 
 
@@ -88,11 +125,8 @@ async def main():
     print(y)
     print(theta)
     
-    wpIndex = await findWaypt(base,slam,wp)
-    baseX = wp[wpIndex][0]
-    baseY = wp[wpIndex][1]
-    baseTheta = wp[wpIndex][2]
-    await moveToPos(base,slam,baseX,baseY,baseTheta)
+    wpIndex = await closestToPath(base,slam,wp)
+    goThroughPath(base,slam,wpIndex,wp)
 
     await robot.close()
 
