@@ -36,10 +36,10 @@ async def moveToPos(base, slam, x,y,theta):
     dist = np.sqrt((y-currY)**2+(x-currX)**2)
     if x-currX <0:
         toMove+= 90
-    await base.spin(toMove,10)
+    await base.spin(toMove,20)
 
     await base.move_straight(int(dist),50)
-    await base.spin(theta-toMove,50)
+    await base.spin(theta-toMove,20)
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
@@ -47,19 +47,22 @@ async def findWaypt(base,slam, arrPos):
     x = pos.x
     y = pos.y
     theta = pos.theta
+    print(f'currently at x = {x}')
+    print(f'currently at y = {y}')
+    print(f'currently at theta = {theta}')
     minDist = np.sqrt((y-arrPos[0][0])**2+(x-arrPos[0][1])**2)
     minIndex = 0
     for i, wp in enumerate(arrPos):
-        wpX = arrPos[i][0] *30
-        wpY = arrPos[i][1] *30
+        wpX = arrPos[i][0] *100
+        wpY = arrPos[i][1] *100
         wpTheta = arrPos[i][2]
         dist = np.sqrt((y-wpY)**2+(x-wpX)**2)
         if dist<minDist:
             minDist = dist
             minIndex = i
 
-    print(f'trying to go to: x= {arrPos[minIndex][0] *30}')
-    print(f'trying to go to: y= {arrPos[minIndex][1] *30}')
+    print(f'trying to go to: x= {arrPos[minIndex][0] *100}')
+    print(f'trying to go to: y= {arrPos[minIndex][1] *100}')
     print(f'trying to go to: theta= {arrPos[minIndex][2]}')
     return minIndex
 
@@ -71,8 +74,8 @@ async def goThroughPath(base,slam,wpIndex, posArr):
     pos = await get_position(slam)
     currX = pos.x
     currY = pos.y
-    wpX = posArr[wpIndex][0]*30
-    wpY = posArr[wpIndex][1]*30
+    wpX = posArr[wpIndex][0]*100
+    wpY = posArr[wpIndex][1]*100
     wpTheta = posArr[wpIndex][2]
     dist = getDist(currX,currY,wpX,wpY)
     if dist <40:
