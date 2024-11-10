@@ -1,7 +1,18 @@
 import asyncio
+from viam.robot.client import RobotClient
 from viam.services.slam import SLAMClient
 
-async def save_internal_state(robot):
+# Define a function to connect to the robot
+async def connect_to_robot():
+    # Replace with your robot's address and secret
+    robot = await RobotClient.at_address("your_robot_address", "your_robot_secret")
+    return robot
+
+# Define the function to save the internal state
+async def save_internal_state():
+    # Connect to the robot
+    robot = await connect_to_robot()
+
     # Create the SLAM service client
     slam_service = SLAMClient.from_robot(robot=robot, name="my_slam_service")
 
@@ -15,7 +26,8 @@ async def save_internal_state(robot):
     with open('map_internal_state.pbstream', 'wb') as file:
         file.write(internal_state_data)
 
-# Run the async function
-# Assume 'robot' is your connected RobotClient instance
-asyncio.run(save_internal_state(robot))
+    # Close the robot connection
+    await robot.close()
 
+# Run the async function
+asyncio.run(save_internal_state())
