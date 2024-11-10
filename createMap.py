@@ -16,7 +16,7 @@ async def save_internal_state():
     robot = await connect_to_robot()
 
     # Create the SLAM service client
-    slam_service = SLAMClient.from_robot(robot=robot, name="my_slam_service")
+    slam_service = SLAMClient.from_robot(robot=robot, name="slam-1")
 
     # Retrieve the internal state
     internal_state_chunks = await slam_service.get_internal_state()
