@@ -4,9 +4,11 @@ from viam.services.slam import SLAMClient
 
 # Define a function to connect to the robot
 async def connect_to_robot():
-    # Replace with your robot's address and secret
-    robot = await RobotClient.at_address("your_robot_address", "your_robot_secret")
-    return robot
+    opts = RobotClient.Options.with_api_key(
+        api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
+        api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
+    )
+    return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
 # Define the function to save the internal state
 async def save_internal_state():
