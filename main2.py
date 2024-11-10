@@ -101,13 +101,13 @@ async def main():
     print('Resources:', robot.resource_names)
 
     base = Base.from_robot(robot, 'viam_base')
-    slam = SLAMClient.from_robot(robot, 'slam-1')  # Initialize SLAM
+    slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
     theta = pos.theta
-    base_origin_x = pos.x -1000
-    base_origin_y = pos.y +1000
+    base_origin_x = 0
+    base_origin_y = 0
 
 
     #get a set of waypoints to track and populate them
