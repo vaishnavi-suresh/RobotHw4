@@ -1,3 +1,6 @@
+# main4.py
+
+# without perbutation recovery added yet
 import asyncio
 from viam.components.base import Base
 from viam.robot.client import RobotClient
@@ -5,127 +8,124 @@ from viam.services.slam import SLAMClient
 import numpy as np
 import math
 
-class CourseFollower:
-    def __init__(self, base, slam):
-        self.base = base
-        self.slam = slam
-        
-        # Control parameters
-        self.angle_threshold = 15       # degrees
-        self.move_speed = 150           # mm/s - slower for better control
-        self.rotation_speed = 30        # degrees/s
-        self.max_distance = 200         # Maximum distance to move in one go
-        
-        # Track starting position
-        self.start_x = None
-        self.start_y = None
-        self.start_theta = None
-        
-        # Define waypoints for square (e.g., 300mm sides)
-        self.waypoints = [
-            (800, 0, 0),
-            (800, 800, 90),
-            (0, 800, 180),
-            (0, 0, 270)
-        ]
-        self.current_wp_index = 0
-
-    async def initialize_position(self):
-        """Store initial position as reference point"""
-        pos = await self.slam.get_position()
-        self.start_x = pos.x
-        self.start_y = pos.y
-        self.start_theta = pos.theta
-        print(f"Initialized at: x={pos.x:.1f}mm, y={pos.y:.1f}mm, θ={pos.theta:.1f}°")
-
-    async def get_relative_position(self):
-        """Get position relative to starting point"""
-        pos = await self.slam.get_position()
-        if self.start_x is None:
-            await self.initialize_position()
-            return 0, 0, pos.theta
-        
-        rel_x = pos.x - self.start_x
-        rel_y = pos.y - self.start_y
-        print(f"Current relative position: x={rel_x:.1f}mm, y={rel_y:.1f}mm, θ={pos.theta:.1f}°")
-        return rel_x, rel_y, pos.theta
-
-    async def turn_to_angle(self, target_angle):
-        """Turn to absolute angle"""
-        _, _, curr_theta = await self.get_relative_position()
-        angle_diff = target_angle - curr_theta
-        # Normalize to [-180, 180]
-        angle_diff = ((angle_diff + 180) % 360) - 180
-        
-        if abs(angle_diff) > self.angle_threshold:
-            print(f"Turning {angle_diff:.1f}° at {self.rotation_speed}°/s")
-            await self.base.spin(angle_diff, self.rotation_speed)
-            await asyncio.sleep(abs(angle_diff) / self.rotation_speed + 0.5)
-
-    async def move_forward(self, distance):
-        """Move forward with safety check"""
-        if distance > self.max_distance:
-            distance = self.max_distance
-        
-        print(f"Moving forward {distance:.1f}mm at {self.move_speed}mm/s")
-        await self.base.move_straight(int(distance), self.move_speed)
-        await asyncio.sleep(distance / self.move_speed + 0.5)
-
-    async def move_square_side(self, target_angle, side_length):
-        """Move one side of the square"""
-        print(f"\nMoving square side: angle={target_angle}°, length={side_length}mm")
-        
-        # First turn to the correct angle
-        await self.turn_to_angle(target_angle)
-        
-        # Move in smaller steps if necessary
-        remaining_distance = side_length
-        while remaining_distance > 0:
-            step_distance = min(remaining_distance, self.max_distance)
-            await self.move_forward(step_distance)
-            remaining_distance -= step_distance
-            
-            # Brief pause between movements
-            await asyncio.sleep(0.5)
-
-    async def navigate_square(self, side_length):
-        """Navigate a square pattern"""
-        print(f"\nStarting square navigation with {side_length}mm sides")
-        
-        # Initialize starting position
-        await self.initialize_position()
-        
-        # Execute each movement
-        for idx, waypoint in enumerate(self.waypoints):
-            target_angle, length = waypoint[2], side_length
-            print(f"\n--- Navigating to waypoint {idx + 1} ---")
-            await self.move_square_side(target_angle, length)
-            await asyncio.sleep(1)  # Pause between sides
-
-async def main():
-    # Configure robot client with API credentials
+async def connect():
     opts = RobotClient.Options.with_api_key(
         api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
         api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
     )
-    robot = await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
+    return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
+
+async def get_position(slam):
+    position = await slam.get_position()
+    print(f"current position: x={position.x:.1f}mm, y={position.y:.1f}mm, θ={position.theta:.1f}°")
+    return position
+
+def get_dist(currX, currY, wantX, wantY):
+    dist = np.sqrt((wantX-currX)**2+(wantY-currY)**2)
+    print(f"distance to target: {dist:.1f}mm")
+    return dist
+
+def normalize_angle(angle):
+    return ((angle+180) % 360) -180 #normalizing angle to [-180, 180]
+
+async def moveToPos(base, slam, x, y, theta):
+    currPos =await get_position(slam)
+    currX = currPos.x
+    currY = currPos.y
+    currTheta = currPos.theta
     
-    try:
-        # Initialize components
-        base = Base.from_robot(robot, 'viam_base')
-        slam = SLAMClient.from_robot(robot, 'slam-1')
-        
-        # Create course follower instance
-        follower = CourseFollower(base, slam)
-        
-        # Navigate a square with 300mm sides
-        await follower.navigate_square(300)
-        
-    finally:
-        # Ensure the robot connection is closed properly
-        await robot.close()
+    dx = x -currX # calculating angle to target here
+    dy = y -currY
+    target_angle = math.degrees(math.atan2(dy, dx))
+    angle_diff = normalize_angle(target_angle -currTheta)
+    print(f"target position: x={x:.1f}mm, y={y:.1f}mm, θ={theta}°")
+    print(f"need to turn: {angle_diff:.1f}°")
+    
+    await base.spin(angle_diff, 20)   # turn towards target
+    await asyncio.sleep(abs(angle_diff)/20 + 0.5)  # waiting for turn to complete
+    
+    dist = get_dist(currX, currY, x, y) # moving it forward
+    if dist > 200:  # limit maximum movement distance to avoid hitting wall
+        dist = 200
+    print(f"moving forward: {dist:.1f}mm")
+    await base.move_straight(int(dist), 100)
+    await asyncio.sleep(dist/100 + 0.5)  # sleep 
+    
+    currPos = await get_position(slam) #orientating it to the target angle
+    final_angle_diff = normalize_angle(theta-currPos.theta)
+    if abs(final_angle_diff)>10:  # only adjust if off by more than 10 degrees
+        print(f"final rotation: {final_angle_diff:.1f}°")
+        await base.spin(final_angle_diff,20)
+        await asyncio.sleep(abs(final_angle_diff)/20+0.5)
+
+async def findWaypt(base, slam, arrPos):
+    print("\nfinding closest waypoint...")
+    pos = await get_position(slam)
+    x = pos.x
+    y = pos.y
+    
+    minDist = float('inf')
+    minIndex = 0
+    for i, wp in enumerate(arrPos):
+        wpX = wp[0]
+        wpY = wp[1]
+        dist = get_dist(x, y, wpX, wpY)
+        print(f"waypoint {i}: distance = {dist:.1f}mm")
+        if dist < minDist:
+            minDist = dist
+            minIndex = i
+    print(f"closest waypoint is {minIndex}")
+    return minIndex
+
+async def goThroughPath(base, slam, wpIndex, posArr):
+    if wpIndex >= len(posArr):
+        print("path completed!!!")
+        return
+    pos = await get_position(slam)
+    currX = pos.x
+    currY = pos.y
+    wpX = posArr[wpIndex][0]
+    wpY = posArr[wpIndex][1]
+    wpTheta = posArr[wpIndex][2]
+    
+    print(f"\nmoving to waypoint {wpIndex}")
+    print(f"target: x={wpX:.1f}, y={wpY:.1f}, θ={wpTheta}")
+    
+    dist = get_dist(currX, currY, wpX, wpY)
+    if dist < 50:  # Within threshold of waypoint
+        print("at waypoint now, moving to next")
+        await moveToPos(base, slam, wpX, wpY, wpTheta)
+        await goThroughPath(base, slam, wpIndex + 1, posArr)
+    else:
+        print("moving to waypoint...")
+        await moveToPos(base, slam, wpX, wpY, wpTheta)
+        await asyncio.sleep(0.5) 
+        await goThroughPath(base, slam, wpIndex, posArr)
+
+async def main():
+    robot = await connect()
+    print('resources:', robot.resource_names)
+    base = Base.from_robot(robot, 'viam_base')
+    slam = SLAMClient.from_robot(robot, 'slam-1')
+    
+    pos = await get_position(slam) #get initial position
+    base_origin_x = pos.x
+    base_origin_y = pos.y
+    
+    square_size = 500 # move in square with length 500mm 
+    wp = np.zeros((4, 3))  # here have 4 waypoints for a simple square
+    # defined square corners
+    wp[0] = [base_origin_x, base_origin_y,0]                    # start
+    wp[1] = [base_origin_x+square_size, base_origin_y,90]     # right
+    wp[2] = [base_origin_x+square_size, base_origin_y+square_size,180]  # top-right
+    wp[3] = [base_origin_x, base_origin_y+square_size,270]    # top-left
+
+    print("\nstarting square navigation...")
+    wpIndex = await findWaypt(base, slam, wp)
+    await goThroughPath(base, slam, wpIndex, wp)
+    
+    await robot.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
-
 
