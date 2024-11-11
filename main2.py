@@ -34,12 +34,18 @@ async def moveToPos(base, slam, x,y,theta):
     currTheta = currPos.theta
     toMove = np.arctan((y-currY)/(x-currX))-currTheta
     print(f'moving to angle: {toMove}')
-    dist = np.sqrt((y-currY)**2+(x-currX)**2)
+    dist = getDist(currX,currY,x,y)
     if x-currX <0:
         toMove+= 90
     await base.spin(toMove,20)
+    while dist > 40:
+        await base.move_straight(10,50)
+        currPos = await get_position(slam)
+        currX = currPos.x
+        currY = currPos.y
+        dist = getDist(currX,currY,x,y)
 
-    await base.move_straight(int(dist),50)
+
     await base.spin(theta-toMove,20)
 
 async def findWaypt(base,slam, arrPos):
