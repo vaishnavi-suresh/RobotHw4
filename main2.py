@@ -20,12 +20,12 @@ async def get_position(slam):
 def getDist (currX, currY, wantX, wantY):
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
 
-async def closestToPath(base,slam, arrPos):
+async def closestToPath(move,base,slam, arrPos):
     wpIndex = await findWaypt(base,slam,arrPos)
     baseX = arrPos[wpIndex][0]
     baseY = arrPos[wpIndex][1]
     baseTheta = arrPos[wpIndex][2]
-    await moveToPos(base,slam,baseX,baseY,baseTheta)
+    await moveToPos(move,base,slam,baseX,baseY,baseTheta)
     return wpIndex
 
 def normalize_angle(angle):
@@ -125,10 +125,10 @@ async def goThroughPath(move,base,slam,wpIndex, posArr):
         await moveToPos(move,base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
-            await goThroughPath(base,slam,wpIndex,posArr)
+            await goThroughPath(move,base,slam,wpIndex,posArr)
     else:
-        wpIndex = await closestToPath(base,slam,posArr)
-        await goThroughPath(base,slam,wpIndex,posArr)
+        wpIndex = await closestToPath(move,base,slam,posArr)
+        await goThroughPath(move,base,slam,wpIndex,posArr)
 
     
 
