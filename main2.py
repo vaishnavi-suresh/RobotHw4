@@ -50,7 +50,7 @@ async def moveToPos(base, slam, x, y, theta):
     await base.spin(toMove, 45)  # Adjust speed if necessary
 
     # Move forward the required distance
-    await base.move_straight(dist, 50)  # Avoid converting distance to an integer
+    await base.move_straight(int(dist), 50)  # Avoid converting distance to an integer
 
     # Get the current orientation after moving to the target position
     finalPos = await get_position(slam)
