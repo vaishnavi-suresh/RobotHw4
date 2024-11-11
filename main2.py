@@ -29,7 +29,6 @@ async def closestToPath(base,slam, arrPos):
     return wpIndex
 
 def normalize_angle(angle):
-    """Normalize an angle to be within the range [-180, 180] degrees."""
     return (angle + 180) % 360 - 180
 
 
@@ -39,7 +38,9 @@ async def moveToPos(base, slam, x,y,theta):
     currX = currPos.x
     currY = currPos.y
     currTheta = currPos.theta
-    toMove = normalize_angle(np.arctan2((y-currY),(x-currX))-currTheta)
+    toMove = np.arctan2((y-currY),(x-currX))-currTheta
+    if toMove >180:
+        toMove = 180-toMove
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
