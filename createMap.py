@@ -14,8 +14,8 @@ async def connect():
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
-async def moveToPos(move,baseName, slamName, x, y, theta):
-    toMove = Pose(x,y,theta)
+async def moveToPos(move,baseName, slamName, x1, y1, theta1):
+    toMove = Pose(x=x1,y=y1,theta=theta1)
     movement = await move.move_on_map(baseName,toMove,slamName)
 
 async def main():
