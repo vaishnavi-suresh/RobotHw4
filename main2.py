@@ -32,7 +32,7 @@ async def moveToPos(base, slam, x,y,theta):
     currX = currPos.x
     currY = currPos.y
     currTheta = currPos.theta
-    toMove = np.arctan((y-currY)/(x-currX))-currTheta
+    toMove = np.arctan2((y-currY),(x-currX))-currTheta
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
@@ -85,7 +85,7 @@ async def goThroughPath(base,slam,wpIndex, posArr):
     wpY = posArr[wpIndex][1]
     wpTheta = posArr[wpIndex][2]
     dist = getDist(currX,currY,wpX,wpY)
-    if dist <100:
+    if dist <40:
         await moveToPos(base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
