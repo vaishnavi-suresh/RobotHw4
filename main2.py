@@ -109,7 +109,7 @@ async def findWaypt(base,slam, arrPos):
     print(f'trying to go to: theta= {arrPos[minIndex][2]}')
     return minIndex
 
-async def goThroughPath(base,slam,wpIndex, posArr):
+async def goThroughPath(move,base,slam,wpIndex, posArr):
     #iterate through waypoints
     #check if the next point is within 50 mm of the current pos
     #if not, use the goto function on the closest position
@@ -122,7 +122,7 @@ async def goThroughPath(base,slam,wpIndex, posArr):
     wpTheta = posArr[wpIndex][2]
     dist = getDist(currX,currY,wpX,wpY)
     if dist <150:
-        await moveToPos(base,slam,wpX,wpY,wpTheta)
+        await moveToPos(move,base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
             await goThroughPath(base,slam,wpIndex,posArr)
