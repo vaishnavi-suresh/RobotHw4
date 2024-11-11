@@ -190,7 +190,7 @@ async def main():
     print(f'currently at theta={theta}')
     
     wpIndex = await closestToPath(move,base,slam,wp)
-    await goThroughPath(base,slam,wpIndex,wp)
+    await goThroughPath(move,base,slam,wpIndex,wp)
 
     await robot.close()
 
