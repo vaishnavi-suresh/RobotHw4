@@ -25,14 +25,15 @@ async def closestToPath(base,slam, arrPos):
     baseTheta = arrPos[wpIndex][2]
     await moveToPos(base,slam,baseX,baseY,baseTheta)
     return wpIndex
-    import numpy as np
 
 def normalize_angle(angle):
     """Normalize an angle to be within the range [-180, 180] degrees."""
     return (angle + 180) % 360 - 180
 
 async def moveToPos(base, slam, x, y, theta):
-    # Get the current position
+    await slam.move_to_position(x,y,0.1)
+    
+"""    # Get the current position
     currPos = await get_position(slam)
     currX = currPos.x
     currY = currPos.y
@@ -61,7 +62,7 @@ async def moveToPos(base, slam, x, y, theta):
     print(f'Final rotation to adjust to orientation: {final_rotation} radians')
 
     # Rotate to the final orientation
-    await base.spin(final_rotation, 20)  # Adjust speed if necessary
+    await base.spin(final_rotation, 20)  # Adjust speed if necessary"""
 
 
 """async def moveToPos(base, slam, x,y,theta):
