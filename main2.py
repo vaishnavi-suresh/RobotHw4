@@ -80,7 +80,7 @@ async def goThroughPath(base,slam,wpIndex, posArr):
     wpY = posArr[wpIndex][1]
     wpTheta = posArr[wpIndex][2]
     dist = getDist(currX,currY,wpX,wpY)
-    if dist <40:
+    if dist <150:
         await moveToPos(base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
@@ -108,16 +108,16 @@ async def main():
     x = pos.x
     y = pos.y
     theta = pos.theta
-    base_origin_x = x-10
-    base_origin_y = y-10
+    base_origin_x = x-200
+    base_origin_y = y-200
 
 
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [500,0,90],
-          [500,500,180],
-          [0,500,270]]
+          [1000,0,90],
+          [1000,1000,180],
+          [0,1000,270]]
     for i in wp:
         i[0]+=base_origin_x
         i[1] += base_origin_y
