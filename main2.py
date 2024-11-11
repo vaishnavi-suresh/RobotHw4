@@ -79,7 +79,7 @@ async def goThroughPath(base,slam,wpIndex, posArr):
     wpY = posArr[wpIndex][1]
     wpTheta = posArr[wpIndex][2]
     dist = getDist(currX,currY,wpX,wpY)
-    if dist <40:
+    if dist <100:
         await moveToPos(base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
