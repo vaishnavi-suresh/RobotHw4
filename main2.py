@@ -27,7 +27,7 @@ async def closestToPath(base,slam, arrPos):
     return wpIndex
     import numpy as np
 
-def normalize_angle_degrees(angle):
+def normalize_angle(angle):
     """Normalize an angle to be within the range [-180, 180] degrees."""
     return (angle + 180) % 360 - 180
 
