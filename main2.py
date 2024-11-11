@@ -38,8 +38,8 @@ async def moveToPos(base, slam, x,y,theta):
     if x-currX <0:
         toMove+= 90
     await base.spin(toMove,20)
-    while dist > 40:
-        await base.move_straight(10,50)
+    while dist > 100:
+        await base.move_straight(50,50)
         currPos = await get_position(slam)
         currX = currPos.x
         currY = currPos.y
@@ -118,7 +118,12 @@ async def main():
 
 
     #get a set of waypoints to track and populate them
-    wp = np.zeros((40,3))
+    #wp = np.zeros((40,3))
+    wp = [[0,0,0],
+          [500,0,90],
+          [500,500,180],
+          [0,500,270]]
+    """
     for i in range(10):
         wp[i][0]=i*100 + base_origin_x
         wp[i][2]=0 
@@ -131,7 +136,7 @@ async def main():
         wp[i+30][0]=0
         wp[i+30][1]=1000-i*100 + base_origin_y
         wp[i+30][2]=270
-    
+    """
     #get initial position
     pos = await slam.get_position()
     x = pos.x
