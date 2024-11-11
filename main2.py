@@ -4,6 +4,8 @@ from viam.components.base import Base
 from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
+from viam.services.motion import MotionClient
+
 import numpy as np
 async def connect():
     opts = RobotClient.Options.with_api_key(
@@ -30,8 +32,11 @@ def normalize_angle(angle):
     """Normalize an angle to be within the range [-180, 180] degrees."""
     return (angle + 180) % 360 - 180
 
-async def moveToPos(base, slam, x, y, theta):
-    # Get the current position
+async def moveToPos(move,base, slam, x, y, theta):
+    toMove = Pose(x=x,y=y,theta=theta)
+    await move.move_on_map(base,toMove, slam)
+
+    """# Get the current position
     currPos = await get_position(slam)
     currX = currPos.x
     currY = currPos.y
@@ -61,7 +66,7 @@ async def moveToPos(base, slam, x, y, theta):
 
     # Rotate to the final orientation
     await base.spin(final_rotation, 20)  # Adjust speed if necessary
-
+"""
 
 """async def moveToPos(base, slam, x,y,theta):
     currPos = await get_position(slam)
@@ -140,6 +145,7 @@ async def main():
 
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
+    motion = MotionClient.from_robot(robot,name="builtin")
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
