@@ -25,9 +25,46 @@ async def closestToPath(base,slam, arrPos):
     baseTheta = arrPos[wpIndex][2]
     await moveToPos(base,slam,baseX,baseY,baseTheta)
     return wpIndex
-    
+    import numpy as np
 
-async def moveToPos(base, slam, x,y,theta):
+def normalize_angle(angle):
+    """Normalize an angle to be within the range [-π, π]."""
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
+async def moveToPos(base, slam, x, y, theta):
+    # Get the current position
+    currPos = await get_position(slam)
+    currX = currPos.x
+    currY = currPos.y
+    currTheta = currPos.theta
+
+    # Calculate the angle to move towards the target
+    target_angle = np.arctan2(y - currY, x - currX)
+    toMove = normalize_angle(target_angle - currTheta)
+    print(f'Rotating to angle: {toMove} radians')
+
+    # Calculate the distance to the target position
+    dist = getDist(currX, currY, x, y)
+
+    # Rotate towards the target direction
+    await base.spin(toMove, 45)  # Adjust speed if necessary
+
+    # Move forward the required distance
+    await base.move_straight(dist, 50)  # Avoid converting distance to an integer
+
+    # Get the current orientation after moving to the target position
+    finalPos = await get_position(slam)
+    finalTheta = finalPos.theta
+
+    # Calculate the final rotation needed to achieve the desired orientation
+    final_rotation = normalize_angle(theta - finalTheta)
+    print(f'Final rotation to adjust to orientation: {final_rotation} radians')
+
+    # Rotate to the final orientation
+    await base.spin(final_rotation, 20)  # Adjust speed if necessary
+
+
+"""async def moveToPos(base, slam, x,y,theta):
     currPos = await get_position(slam)
     currX = currPos.x
     currY = currPos.y
@@ -37,11 +74,11 @@ async def moveToPos(base, slam, x,y,theta):
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
         toMove+= 90
-    await base.spin(-toMove,45)
+    await base.spin(toMove,45)
     await base.move_straight(int(dist),50)
 
 
-    await base.spin(theta-toMove,20)
+    await base.spin(theta-toMove,20)"""
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
