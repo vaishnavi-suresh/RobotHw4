@@ -37,11 +37,11 @@ async def moveToPos(base, slam, x,y,theta):
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
         toMove+= 90
-    await base.spin(-toMove,20)
+    await base.spin(toMove,20)
     await base.move_straight(int(dist),50)
 
 
-    await base.spin(-theta+toMove,20)
+    await base.spin(theta-toMove,20)
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
@@ -108,8 +108,8 @@ async def main():
     x = pos.x
     y = pos.y
     theta = pos.theta
-    base_origin_x = x-200
-    base_origin_y = y-200
+    base_origin_x = x+1000
+    base_origin_y = y+1000
 
 
     #get a set of waypoints to track and populate them
