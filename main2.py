@@ -113,8 +113,8 @@ async def main():
     x = pos.x
     y = pos.y
     theta = pos.theta
-    base_origin_x = 0
-    base_origin_y = 0
+    base_origin_x = x
+    base_origin_y = y
 
 
     #get a set of waypoints to track and populate them
@@ -123,6 +123,9 @@ async def main():
           [500,0,90],
           [500,500,180],
           [0,500,270]]
+    for i in wp:
+        i[0]+=base_origin_x
+        i[1] += base_origin_y
     """
     for i in range(10):
         wp[i][0]=i*100 + base_origin_x
