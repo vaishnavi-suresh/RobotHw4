@@ -39,7 +39,7 @@ async def moveToPos(base, slam, x,y,theta):
     currX = currPos.x
     currY = currPos.y
     currTheta = currPos.theta
-    toMove = np.arctan2((y-currY),(x-currX))-currTheta
+    toMove = normalize_angle(np.arctan2((y-currY),(x-currX))-currTheta)
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
