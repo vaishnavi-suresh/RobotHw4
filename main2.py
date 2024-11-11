@@ -43,7 +43,7 @@ async def moveToPos(move,base, slam, x, y, theta):
         'slam_service_name':slam
 
     }
-    await move.move_on_map(params)
+    await move.move_on_map(base,toMove,slam)
 
     """# Get the current position
     currPos = await get_position(slam)
