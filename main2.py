@@ -25,46 +25,9 @@ async def closestToPath(base,slam, arrPos):
     baseTheta = arrPos[wpIndex][2]
     await moveToPos(base,slam,baseX,baseY,baseTheta)
     return wpIndex
-    import numpy as np
+    
 
-def normalize_angle_degrees(angle):
-    """Normalize an angle to be within the range [-180, 180] degrees."""
-    return (angle + 180) % 360 - 180
-
-async def moveToPos(base, slam, x, y, theta):
-    # Get the current position
-    currPos = await get_position(slam)
-    currX = currPos.x
-    currY = currPos.y
-    currTheta = currPos.theta
-
-    # Calculate the angle to move towards the target
-    target_angle = np.arctan2(y - currY, x - currX)
-    toMove = normalize_angle(target_angle - currTheta)
-    print(f'Rotating to angle: {toMove} radians')
-
-    # Calculate the distance to the target position
-    dist = getDist(currX, currY, x, y)
-
-    # Rotate towards the target direction
-    await base.spin(toMove, 45)  # Adjust speed if necessary
-
-    # Move forward the required distance
-    await base.move_straight(dist, 50)  # Avoid converting distance to an integer
-
-    # Get the current orientation after moving to the target position
-    finalPos = await get_position(slam)
-    finalTheta = finalPos.theta
-
-    # Calculate the final rotation needed to achieve the desired orientation
-    final_rotation = normalize_angle(theta - finalTheta)
-    print(f'Final rotation to adjust to orientation: {final_rotation} radians')
-
-    # Rotate to the final orientation
-    await base.spin(final_rotation, 20)  # Adjust speed if necessary
-
-
-"""async def moveToPos(base, slam, x,y,theta):
+async def moveToPos(base, slam, x,y,theta):
     currPos = await get_position(slam)
     currX = currPos.x
     currY = currPos.y
@@ -74,11 +37,11 @@ async def moveToPos(base, slam, x, y, theta):
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
         toMove+= 90
-    await base.spin(toMove,45)
+    await base.spin(-toMove,45)
     await base.move_straight(int(dist),50)
 
 
-    await base.spin(theta-toMove,20)"""
+    await base.spin(theta-toMove,20)
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
@@ -154,7 +117,7 @@ async def main():
     wp = [[0,0,0],
           [1000,0,90],
           [1000,1000,180],
-          [0,1000,-90]]
+          [0,1000,270]]
     for i in wp:
         i[0]+=base_origin_x
         i[1] += base_origin_y
