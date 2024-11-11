@@ -6,7 +6,6 @@ from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
 from viam.services.motion import MotionClient
 from viam.proto.common import Pose
-
 import numpy as np
 async def connect():
     opts = RobotClient.Options.with_api_key(

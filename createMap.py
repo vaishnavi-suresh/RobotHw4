@@ -1,35 +1,33 @@
+# main2.py
 import asyncio
+from viam.components.base import Base
 from viam.robot.client import RobotClient
+from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
-
-# Define a function to connect to the robot
-async def connect_to_robot():
+from viam.services.motion import MotionClient
+from viam.proto.common import Pose
+import numpy as np
+async def connect():
     opts = RobotClient.Options.with_api_key(
         api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
         api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
-# Define the function to save the internal state
-async def save_internal_state():
-    # Connect to the robot
-    robot = await connect_to_robot()
+async def moveToPos(baseName, slamName, x, y, theta):
+    toMove = Pose(x=x,y=y,theta=theta)
+    movement = await move.move_on_map(baseName,toMove,slamName)
 
-    # Create the SLAM service client
-    slam_service = SLAMClient.from_robot(robot=robot, name="slam-1")
+async def main():
+    robot = await connect()
+    print('Resources:', robot.resource_names)
 
-    # Retrieve the internal state
-    internal_state_chunks = await slam_service.get_internal_state()
+    base = Base.from_robot(robot, 'viam_base')
+    slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
+    move = MotionClient.from_robot(robot,name="builtin")
+    baseName = base.get_resource_name('viam_base')
+    slamName = slam.get_resource_name('slam-2')
+    moveToPos(baseName,slamName,0,0,0)
 
-    # Concatenate the byte chunks
-    internal_state_data = b''.join(internal_state_chunks)
-
-    # Save to a file
-    with open('map_internal_state.pbstream', 'wb') as file:
-        file.write(internal_state_data)
-
-    # Close the robot connection
-    await robot.close()
-
-# Run the async function
-asyncio.run(save_internal_state())
+if __name__ == '__main__':
+    asyncio.run(main())
