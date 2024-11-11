@@ -35,15 +35,9 @@ def normalize_angle(angle):
 
 async def moveToPos(move,base, slam, x, y, theta):
     toMove = Pose(x=x,y=y,theta=theta)
-
-    params = {
-        'name': 'move',
-        'destination':toMove,
-        'component_name':base,
-        'slam_service_name':slam
-
-    }
-    movement = await move.move_on_map(base,toMove,slam)
+    baseName = base.get_resource_name('viam_base')
+    slamName = slam.get_resource_name('slam-2')
+    movement = await move.move_on_map(baseName,toMove,slamName)
 
     """# Get the current position
     currPos = await get_position(slam)
