@@ -40,7 +40,7 @@ async def moveToPos(move,base, slam, x, y, theta):
         'name': 'move',
         'destination':toMove,
         'component_name':base,
-        'slam_service_name':'slam'
+        'slam_service_name':slam
 
     }
     await move.move_on_map(params)
