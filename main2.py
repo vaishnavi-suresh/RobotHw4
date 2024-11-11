@@ -37,11 +37,11 @@ async def moveToPos(base, slam, x,y,theta):
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
         toMove+= 90
-    await base.spin(toMove,20)
+    await base.spin(-toMove,20)
     await base.move_straight(int(dist),50)
 
 
-    await base.spin(theta-toMove,20)
+    await base.spin(-theta+toMove,20)
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
