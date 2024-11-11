@@ -27,9 +27,9 @@ async def closestToPath(base,slam, arrPos):
     return wpIndex
     import numpy as np
 
-def normalize_angle(angle):
-    """Normalize an angle to be within the range [-π, π]."""
-    return (angle + np.pi) % (2 * np.pi) - np.pi
+def normalize_angle_degrees(angle):
+    """Normalize an angle to be within the range [-180, 180] degrees."""
+    return (angle + 180) % 360 - 180
 
 async def moveToPos(base, slam, x, y, theta):
     # Get the current position
@@ -154,7 +154,7 @@ async def main():
     wp = [[0,0,0],
           [1000,0,90],
           [1000,1000,180],
-          [0,1000,270]]
+          [0,1000,-90]]
     for i in wp:
         i[0]+=base_origin_x
         i[1] += base_origin_y
