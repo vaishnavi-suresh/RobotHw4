@@ -37,7 +37,7 @@ async def moveToPos(base, slam, x,y,theta):
     dist = getDist(currX,currY,x,y)
     if x-currX <0:
         toMove+= 90
-    await base.spin(toMove,45)
+    await base.spin(-toMove,45)
     await base.move_straight(int(dist),50)
 
 
