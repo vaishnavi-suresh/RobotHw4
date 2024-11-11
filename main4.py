@@ -1,6 +1,4 @@
 # main4.py
-
-# without perbutation recovery added yet
 import asyncio
 from viam.components.base import Base
 from viam.robot.client import RobotClient
@@ -28,8 +26,14 @@ def get_dist(currX, currY, wantX, wantY):
 def normalize_angle(angle):
     return ((angle+180) % 360) -180 #normalizing angle to [-180, 180]
 
-async def moveToPos(base, slam, x, y, theta):
+async def moveToPos(base, slam, x, y, theta, last_pos=None):
     currPos =await get_position(slam)
+
+    if last_pos and await detect_perbutation(slam, last_pos):
+        print("perbutation detected, relocalizing...")
+        await asyncio.sleep(0.5)
+        return False
+
     currX = currPos.x
     currY = currPos.y
     currTheta = currPos.theta
@@ -58,6 +62,9 @@ async def moveToPos(base, slam, x, y, theta):
         await base.spin(final_angle_diff,20)
         await asyncio.sleep(abs(final_angle_diff)/20+0.5)
 
+    final_dis = get_dist(currPos.x, currPos.y, x, y)  
+    return final_dis < 50 # returns here if close to target
+    
 async def findWaypt(base, slam, arrPos):
     print("\nfinding closest waypoint...")
     pos = await get_position(slam)
@@ -77,13 +84,15 @@ async def findWaypt(base, slam, arrPos):
     print(f"closest waypoint is {minIndex}")
     return minIndex
 
-async def goThroughPath(base, slam, wpIndex, posArr):
+async def goThroughPath(base, slam, wpIndex, posArr, last_pos=None):
     if wpIndex >= len(posArr):
         print("path completed!!!")
         return
     pos = await get_position(slam)
-    currX = pos.x
-    currY = pos.y
+
+    last_pos = pos 
+    # currX = pos.x
+    # currY = pos.y
     wpX = posArr[wpIndex][0]
     wpY = posArr[wpIndex][1]
     wpTheta = posArr[wpIndex][2]
@@ -91,16 +100,37 @@ async def goThroughPath(base, slam, wpIndex, posArr):
     print(f"\nmoving to waypoint {wpIndex}")
     print(f"target: x={wpX:.1f}, y={wpY:.1f}, θ={wpTheta}")
     
-    dist = get_dist(currX, currY, wpX, wpY)
-    if dist < 50:  # Within threshold of waypoint
-        print("at waypoint now, moving to next")
-        await moveToPos(base, slam, wpX, wpY, wpTheta)
-        await goThroughPath(base, slam, wpIndex + 1, posArr)
+    success_attempt = await moveToPos(base, slam, wpX, wpY, wpTheta, last_pos)
+    if success_attempt:
+        print(f"successfully reached waypoint {wpIndex}")
+        await goThroughPath(base, slam, wpIndex + 1, posArr, last_pos)
     else:
-        print("moving to waypoint...")
-        await moveToPos(base, slam, wpX, wpY, wpTheta)
-        await asyncio.sleep(0.5) 
-        await goThroughPath(base, slam, wpIndex, posArr)
+        print("pos error detected or perturbation detected, retrying...")
+        new_index = await findWaypt(base, slam, posArr)
+        if new_index != wpIndex:
+            print("switching to closer waypoint: {new_index}")
+        await goThroughPath(base, slam, new_index, posArr, last_pos)
+
+    # dist = get_dist(currX, currY, wpX, wpY)
+    # if dist < 50:  # Within threshold of waypoint
+    #     print("at waypoint now, moving to next")
+    #     await moveToPos(base, slam, wpX, wpY, wpTheta)
+    #     await goThroughPath(base, slam, wpIndex + 1, posArr)
+    # else:
+    #     print("moving to waypoint...")
+    #     await moveToPos(base, slam, wpX, wpY, wpTheta)
+    #     await asyncio.sleep(0.5) 
+    #     await goThroughPath(base, slam, wpIndex, posArr)
+
+# perturbation recovery
+async def detect_perbutation(slam, last_pos, threshold=250):
+    curr = await get_position(slam)
+    dist = get_dist(curr.x, curr.y, last_pos.x, last_pos.y) 
+    angle_diff = abs(normalize_angle(curr.theta - last_pos.theta))
+    if dist > threshold or angle_diff > 30:
+        print(f"PERTURBATION DETECTED!!!!: dist changed ={dist:.1f}mm, angle changed={angle_diff:.1f}°")
+        return True
+    return False
 
 async def main():
     robot = await connect()
