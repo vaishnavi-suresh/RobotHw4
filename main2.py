@@ -5,7 +5,7 @@ from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
 from viam.services.motion import MotionClient
-from viam.proto.common import Pose
+
 import numpy as np
 async def connect():
     opts = RobotClient.Options.with_api_key(
@@ -20,57 +20,21 @@ async def get_position(slam):
 def getDist (currX, currY, wantX, wantY):
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
 
-async def closestToPath(move,base,slam, arrPos):
+async def closestToPath(base,slam, arrPos):
     wpIndex = await findWaypt(base,slam,arrPos)
     baseX = arrPos[wpIndex][0]
     baseY = arrPos[wpIndex][1]
     baseTheta = arrPos[wpIndex][2]
-    await moveToPos(move,base,slam,baseX,baseY,baseTheta)
+    await moveToPos(base,slam,baseX,baseY,baseTheta)
     return wpIndex
 
 def normalize_angle(angle):
     """Normalize an angle to be within the range [-180, 180] degrees."""
     return (angle + 180) % 360 - 180
 
-async def moveToPos(move,base, slam, x, y, theta):
-    toMove = Pose(x=x,y=y,theta=theta)
-    baseName = base.get_resource_name('viam_base')
-    slamName = slam.get_resource_name('slam-2')
-    movement = await move.move_on_map(baseName,toMove,slamName)
 
-    """# Get the current position
-    currPos = await get_position(slam)
-    currX = currPos.x
-    currY = currPos.y
-    currTheta = currPos.theta
 
-    # Calculate the angle to move towards the target
-    target_angle = np.arctan2(y - currY, x - currX)
-    toMove = normalize_angle(target_angle - currTheta)
-    print(f'Rotating to angle: {toMove} radians')
-
-    # Calculate the distance to the target position
-    dist = getDist(currX, currY, x, y)
-
-    # Rotate towards the target direction
-    await base.spin(toMove, 45)  # Adjust speed if necessary
-
-    # Move forward the required distance
-    await base.move_straight(int(dist), 50)  # Avoid converting distance to an integer
-
-    # Get the current orientation after moving to the target position
-    finalPos = await get_position(slam)
-    finalTheta = finalPos.theta
-
-    # Calculate the final rotation needed to achieve the desired orientation
-    final_rotation = normalize_angle(theta - finalTheta)
-    print(f'Final rotation to adjust to orientation: {final_rotation} radians')
-
-    # Rotate to the final orientation
-    await base.spin(final_rotation, 20)  # Adjust speed if necessary
-"""
-
-"""async def moveToPos(base, slam, x,y,theta):
+async def moveToPos(base, slam, x,y,theta):
     currPos = await get_position(slam)
     currX = currPos.x
     currY = currPos.y
@@ -84,7 +48,7 @@ async def moveToPos(move,base, slam, x, y, theta):
     await base.move_straight(int(dist),50)
 
 
-    await base.spin(theta-toMove,20)"""
+    await base.spin(theta-toMove,20)
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
@@ -111,7 +75,7 @@ async def findWaypt(base,slam, arrPos):
     print(f'trying to go to: theta= {arrPos[minIndex][2]}')
     return minIndex
 
-async def goThroughPath(move,base,slam,wpIndex, posArr):
+async def goThroughPath(base,slam,wpIndex, posArr):
     #iterate through waypoints
     #check if the next point is within 50 mm of the current pos
     #if not, use the goto function on the closest position
@@ -124,13 +88,13 @@ async def goThroughPath(move,base,slam,wpIndex, posArr):
     wpTheta = posArr[wpIndex][2]
     dist = getDist(currX,currY,wpX,wpY)
     if dist <150:
-        await moveToPos(move,base,slam,wpX,wpY,wpTheta)
+        await moveToPos(base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
-            await goThroughPath(move,base,slam,wpIndex,posArr)
+            await goThroughPath(base,slam,wpIndex,posArr)
     else:
-        wpIndex = await closestToPath(move,base,slam,posArr)
-        await goThroughPath(move,base,slam,wpIndex,posArr)
+        wpIndex = await closestToPath(base,slam,posArr)
+        await goThroughPath(base,slam,wpIndex,posArr)
 
     
 
@@ -147,7 +111,7 @@ async def main():
 
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
-    move = MotionClient.from_robot(robot,name="builtin")
+    motion = MotionClient.from_robot(robot,name="builtin")
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
@@ -188,8 +152,8 @@ async def main():
     print(f'currently at y={y}')
     print(f'currently at theta={theta}')
     
-    wpIndex = await closestToPath(move,base,slam,wp)
-    await goThroughPath(move,base,slam,wpIndex,wp)
+    wpIndex = await closestToPath(base,slam,wp)
+    await goThroughPath(base,slam,wpIndex,wp)
 
     await robot.close()
 
