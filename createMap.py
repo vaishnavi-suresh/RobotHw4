@@ -14,7 +14,7 @@ async def connect():
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
-async def moveToPos(baseName, slamName, x, y, theta):
+async def moveToPos(move,baseName, slamName, x, y, theta):
     toMove = Pose(x=x,y=y,theta=theta)
     movement = await move.move_on_map(baseName,toMove,slamName)
 
@@ -27,7 +27,7 @@ async def main():
     move = MotionClient.from_robot(robot,name="builtin")
     baseName = base.get_resource_name('viam_base')
     slamName = slam.get_resource_name('slam-2')
-    await moveToPos(baseName,slamName,0,0,0)
+    await moveToPos(move,baseName,slamName,0,0,0)
 
 if __name__ == '__main__':
     asyncio.run(main())
