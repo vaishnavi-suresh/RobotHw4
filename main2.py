@@ -92,6 +92,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             next = wpIndex+1
         c = await closestToPath(base,slam,posArr)
         if wpIndex != c:
+            print("NOT CLOSEST")
             await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
         else:
