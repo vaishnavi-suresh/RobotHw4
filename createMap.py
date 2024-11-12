@@ -1,4 +1,3 @@
- main2.py
 import asyncio
 from viam.components.base import Base
 from viam.robot.client import RobotClient
