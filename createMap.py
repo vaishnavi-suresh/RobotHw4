@@ -31,7 +31,7 @@ async def moveToPos(base, slam, x,y,theta):
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
 
-    while np.abs(target_angle-currTheta)>12:
+    while np.abs(target_angle-currTheta)>5:
         if currTheta>target_angle:
             await base.spin(-10,45)
         else:
