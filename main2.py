@@ -50,11 +50,19 @@ async def moveToPos(base, slam, x,y,theta):
     toMove = (target_angle - currTheta + 180) % 360 -180
     print(f'moving to angle: {target_angle}')
     dist = getDist(currX,currY,x,y)
-    while np.abs(toMove)>5:
+    while np.abs(toMove)>2:
         await base.spin(toMove/2, 45)
         currPos = await slam.get_position()
         currTheta = currPos.theta
         toMove = (target_angle - currTheta + 180) % 360 -180
+    while dist>300:
+        await base.move_straight(int(dist),200)
+        currPos = await slam.get_position()
+        currX = currPos.x
+        currY = currPos.y
+        dist = getDist(currX,currY,x,y)
+        
+
         
     #await base.spin(toMove, 45)
     await base.move_straight(int(dist),200)
