@@ -23,6 +23,9 @@ async def moveToPos(base, slam, x,y,theta):
     currX = currPos.x
     currY = currPos.y
     currTheta = currPos.theta
+    print (f'x={currX}')
+    print (f'y={currY}')
+    print (f'theta={currTheta}')
     toMove = np.degrees(np.arctan2((y-currY),(x-currX)))-currTheta
     if toMove >180:
         toMove = 180-toMove
@@ -42,6 +45,14 @@ async def main():
     baseName = base.get_resource_name('viam_base')
     slamName = slam.get_resource_name('slam-2')
     await moveToPos(base,slam,0,0,0)
+    currPos = await slam.get_position()
+    currX = currPos.x
+    currY = currPos.y
+    currTheta = currPos.theta
+    print (f'x={currX}')
+    print (f'y={currY}')
+    print (f'theta={currTheta}')
+
 
 if __name__ == '__main__':
     asyncio.run(main())
