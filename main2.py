@@ -173,7 +173,9 @@ async def main():
           [1000,0,90],
           [1000,1000,180],
           [0,1000,-90]]
-
+    for i in wp:
+        i[0]+=base_origin_x
+        i[1] += base_origin_y
     """
     for i in range(10):
         wp[i][0]=i*100 + base_origin_x
