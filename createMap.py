@@ -32,10 +32,8 @@ async def moveToPos(base, slam, x,y,theta):
     dist = getDist(currX,currY,x,y)
 
     while np.abs(target_angle-currTheta)>5:
-        if currTheta>target_angle:
-            await base.spin(-10,45)
-        else:
-            await base.spin(10,45)
+        toMove = (target_angle - currTheta + 180) % 360 -180
+        await base.spin(toMove, 45)
         currPos = await slam.get_position()
         currTheta = currPos.theta
         
