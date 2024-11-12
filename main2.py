@@ -33,6 +33,7 @@ def getAngle(x,y):
 
 
 async def moveToPos(base, slam, x,y,theta):
+    print("move to point call")
     currPos = await slam.get_position()
     currX = currPos.x
     currY = currPos.y
@@ -40,6 +41,9 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'x={currX}')
     print (f'y={currY}')
     print (f'theta={currTheta}')
+    print (f'want x={x}')
+    print (f'want y={y}')
+    print (f'want theta={theta}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
     toMove = (target_angle - currTheta + 180) % 360 -180
