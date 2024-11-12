@@ -13,10 +13,47 @@ async def connect():
         api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
-
-
 def getDist (currX, currY, wantX, wantY):
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
+async def moveToPos(base, slam, x, y, theta):
+    # Retrieve current position from SLAM
+    currPos = await slam.get_position()
+    currX, currY, currTheta = currPos.x, currPos.y, currPos.theta
+
+    # Print current position for debugging
+    print(f'Initial position: x={currX}, y={currY}, theta={currTheta}')
+
+    # Step 1: Calculate the angle to face the target position
+    target_angle_rad = np.arctan2(y - currY, x - currX)
+    target_angle = np.degrees(target_angle_rad)
+    toMove = (target_angle - currTheta + 180) % 360 - 180  # Normalize to [-180, 180]
+
+    print(f"Calculated angle to move: {toMove} degrees")
+
+    # Step 2: Rotate to face the target position
+    await base.spin(toMove, 45)
+
+    # Step 3: Move straight to the target position
+    dist = getDist(currX, currY, x, y)
+    await base.move_straight(int(dist), 50)
+
+    # Step 4: Recheck the current position and orientation
+    currPos = await slam.get_position()
+    currX, currY, currTheta = currPos.x, currPos.y, currPos.theta
+    print(f'Position after movement: x={currX}, y={currY}, theta={currTheta}')
+
+    # Step 5: Rotate to the final target orientation
+    final_angle_diff = (theta - currTheta + 180) % 360 - 180
+    print(f"Rotating to final orientation by {final_angle_diff} degrees")
+    await base.spin(final_angle_diff, 45)
+
+    # Final check of position and orientation
+    currPos = await slam.get_position()
+    currX, currY, currTheta = currPos.x, currPos.y, currPos.theta
+    print(f'Final position: x={currX}, y={currY}, theta={currTheta}')
+
+"""
+
 
 async def moveToPos(base, slam, x,y,theta):
     currPos = await slam.get_position()
@@ -55,3 +92,4 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+"""
