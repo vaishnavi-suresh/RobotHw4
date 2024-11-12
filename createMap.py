@@ -36,6 +36,7 @@ async def moveToPos(base, slam, x,y,theta):
         print(currTheta)
         await base.spin(toMove, 45)
         currPos = await slam.get_position()
+        await asyncio.sleep(0.1)
         currTheta = currPos.theta
         
     await base.move_straight(int(dist),100)
