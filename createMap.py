@@ -61,7 +61,8 @@ async def move_to_target(x_target, y_target, tolerance=0.1):
         await asyncio.sleep(0.5)
 
 # Call the move function
-await move_to_target(x_target, y_target)
+
+asyncio.run( move_to_target(x_target, y_target))
 
 """# main2.py
 import asyncio
