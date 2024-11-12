@@ -5,6 +5,7 @@ from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
 from viam.services.motion import MotionClient
+import scipy
 from scipy.spatial import distance
 
 
