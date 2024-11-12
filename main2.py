@@ -181,7 +181,7 @@ async def main():
     
     wpIndex = await closestToPath(base,slam,wp)
 
-    await goThroughPath(base,slam,wpIndex,wp)
+    await goThroughPath(wpIndex,base,slam,wpIndex,wp)
 
     await robot.close()
 
