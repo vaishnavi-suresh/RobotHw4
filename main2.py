@@ -32,24 +32,29 @@ def getAngle(x,y):
     arctan = np.arctan(x,y)
 
 
-
 async def moveToPos(base, slam, x,y,theta):
-    currPos = await get_position(slam)
+    currPos = await slam.get_position()
     currX = currPos.x
     currY = currPos.y
     currTheta = currPos.theta
-    toMove = np.degrees(np.arctan2((y-currY),(x-currX)))-currTheta
-    if toMove >180:
-        toMove = 180-toMove
+    print (f'x={currX}')
+    print (f'y={currY}')
+    print (f'theta={currTheta}')
+    target_angle_rad = np.arctan2(y - currY, x - currX)
+    target_angle = np.degrees(target_angle_rad)
+    toMove = (target_angle - currTheta + 180) % 360 -180
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
-    if x-currX <0:
-        toMove+= 90
-    await base.spin(-toMove,45)
-    await base.move_straight(int(dist),50)
 
-
-    await base.spin(theta-toMove,20)
+    while np.abs(target_angle-currTheta)>5:
+        toMove = (target_angle - currTheta + 180) % 360 -180
+        print(currTheta)
+        await base.spin(toMove, 45)
+        currPos = await slam.get_position()
+        await asyncio.sleep(0.1)
+        currTheta = currPos.theta
+        
+    await base.move_straight(int(dist),100)
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
