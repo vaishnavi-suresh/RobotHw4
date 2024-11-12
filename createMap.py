@@ -41,6 +41,8 @@ async def move_to_target(x_target, y_target, tolerance=0.1):
 
 
         # Extract current position from internal state (mock example, adjust according to actual data structure)
+        for i in internal_state:
+            print(i)
         current_x = internal_state.position.x
         current_y = internal_state.position.y
 
