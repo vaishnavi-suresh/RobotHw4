@@ -23,7 +23,6 @@ async def get_position(slam):
 def getDist (currX, currY, wantX, wantY):
     curr = (currX,currY)
     want = (wantX,wantY)
-    return distance.euclidean(curr,want)
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
 
 async def closestToPath(base,slam, arrPos):
