@@ -55,7 +55,7 @@ async def moveToPos(base, slam, x,y,theta):
         currPos = await slam.get_position()
         currTheta = currPos.theta
         toMove = (target_angle - currTheta + 180) % 360 -180
-    while dist>300:
+    while dist>150:
         await base.move_straight(int(dist),200)
         currPos = await slam.get_position()
         currX = currPos.x
@@ -118,7 +118,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
-        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>300:
+        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>150:
             print("NOT CLOSEST")
             await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
