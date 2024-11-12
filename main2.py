@@ -100,7 +100,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         if wpIndex+1 < len(posArr):
             next = wpIndex+1
         c = await closestToPath(base,slam,posArr)
-        pos = get_position(slam)
+        pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
         if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>250:
