@@ -5,6 +5,8 @@ from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
 from viam.services.motion import MotionClient
+from scipy.spatial import distance
+
 
 import numpy as np
 async def connect():
@@ -18,6 +20,9 @@ async def get_position(slam):
     return position
 
 def getDist (currX, currY, wantX, wantY):
+    curr = (currX,currY)
+    want = (wantX,wantY)
+    return distance.euclidean(curr,want)
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
 
 async def closestToPath(base,slam, arrPos):
@@ -43,7 +48,6 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'theta={currTheta}')
     print (f'want x={x}')
     print (f'want y={y}')
-    print (f'want theta={theta}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
     toMove = (target_angle - currTheta + 180) % 360 -180
@@ -51,7 +55,6 @@ async def moveToPos(base, slam, x,y,theta):
     dist = getDist(currX,currY,x,y)
     await base.spin(toMove, 45)
     await base.move_straight(int(dist),100)
-    await base.spin(theta-toMove,45)
 """    while np.abs(currTheta-target_angle)>7:
         if currTheta<theta:
             await base.spin(5,45)
