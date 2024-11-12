@@ -61,11 +61,11 @@ async def moveToPos(base, slam, x,y,theta):
         currX = currPos.x
         currY = currPos.y
         dist = getDist(currX,currY,x,y)
-        
+
 
         
     #await base.spin(toMove, 45)
-    await base.move_straight(int(dist),200)
+    #await base.move_straight(int(dist),200)
 """    while np.abs(currTheta-target_angle)>7:
         if currTheta<theta:
             await base.spin(5,45)
