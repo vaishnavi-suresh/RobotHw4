@@ -103,7 +103,7 @@ async def goThroughPath(base, slam, wpIndex, posArr):
         dist = getDist(currX, currY, wpX, wpY)
         
         # Check if we're close enough to the waypoint
-        if dist < 150:
+        if dist < 300:
             # Move to the waypoint if within threshold
             await moveToPos(base, slam, wpX, wpY, wpTheta)
             print(f"go to next WP{wpIndex}")
