@@ -33,7 +33,7 @@ async def moveToPos(base, slam, x,y,theta):
     dist = getDist(currX,currY,x,y)
 
     while dist>100:
-        await base.spin(toMove,30)
+        await base.spin(toMove,50)
         currPos = await slam.get_position()
         currX = currPos.x
         currY = currPos.y
