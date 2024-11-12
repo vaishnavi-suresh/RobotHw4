@@ -6,7 +6,6 @@ from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
 from viam.services.motion import MotionClient
 import scipy
-from scipy.spatial import distance
 
 
 import numpy as np
@@ -33,8 +32,6 @@ async def closestToPath(base,slam, arrPos):
     await moveToPos(base,slam,baseX,baseY,baseTheta)
     return wpIndex
 
-def getAngle(x,y):
-    arctan = np.arctan(x,y)
 
 
 async def moveToPos(base, slam, x,y,theta):
@@ -54,7 +51,7 @@ async def moveToPos(base, slam, x,y,theta):
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
     await base.spin(toMove, 45)
-    await base.move_straight(int(dist),100)
+    await base.move_straight(int(dist),200)
 """    while np.abs(currTheta-target_angle)>7:
         if currTheta<theta:
             await base.spin(5,45)
