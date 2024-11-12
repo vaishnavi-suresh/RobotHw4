@@ -41,7 +41,7 @@ async def main():
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
     baseName = base.get_resource_name('viam_base')
     slamName = slam.get_resource_name('slam-2')
-    await moveToPos(baseName,slamName,0,0,0)
+    await moveToPos(base,slam,0,0,0)
 
 if __name__ == '__main__':
     asyncio.run(main())
