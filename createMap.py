@@ -14,9 +14,24 @@ async def connect():
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
-async def moveToPos(move,baseName, slamName, x1, y1, theta1):
-    toMove = Pose(x=x1,y=y1,theta=theta1)
-    movement = await move.move_on_map(baseName,toMove,slamName)
+
+def getDist (currX, currY, wantX, wantY):
+    return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
+
+async def moveToPos(base, slam, x,y,theta):
+    currPos = await slam.get_position()
+    currX = currPos.x
+    currY = currPos.y
+    currTheta = currPos.theta
+    toMove = np.degrees(np.arctan2((y-currY),(x-currX)))-currTheta
+    if toMove >180:
+        toMove = 180-toMove
+    print(f'moving to angle: {toMove}')
+    dist = getDist(currX,currY,x,y)
+    if x-currX <0:
+        toMove+= 90
+    await base.spin(-toMove,45)
+    await base.move_straight(int(dist),50)
 
 async def main():
     robot = await connect()
@@ -24,10 +39,9 @@ async def main():
 
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
-    move = MotionClient.from_robot(robot,name="builtin")
     baseName = base.get_resource_name('viam_base')
     slamName = slam.get_resource_name('slam-2')
-    await moveToPos(move,baseName,slamName,0,0,0)
+    await moveToPos(baseName,slamName,0,0,0)
 
 if __name__ == '__main__':
     asyncio.run(main())
