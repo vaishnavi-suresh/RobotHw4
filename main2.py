@@ -94,12 +94,16 @@ async def findWaypt(base,slam, arrPos):
     return minIndex
 
 async def goThroughPath(orig,base,slam,wpIndex, posArr):
-    while wpIndex +1 != orig:
+    next = wpIndex+1
+    while next != orig:
         next =0
         if wpIndex+1 < len(posArr):
             next = wpIndex+1
         c = await closestToPath(base,slam,posArr)
-        if wpIndex != c:
+        pos = get_position(slam)
+        currX = pos.x
+        currY = pos.y
+        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>250:
             print("NOT CLOSEST")
             await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
