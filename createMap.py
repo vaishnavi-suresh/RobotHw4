@@ -40,9 +40,10 @@ async def moveToPos(base, slam, x,y,theta):
 async def main():
     robot = await connect()
     print('Resources:', robot.resource_names)
-    internal_state = await slam.get_internal_state()
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
+    internal_state = await slam.get_internal_state()
+
     baseName = base.get_resource_name('viam_base')
     slamName = slam.get_resource_name('slam-2')
     await moveToPos(base,slam,0,0,0)
