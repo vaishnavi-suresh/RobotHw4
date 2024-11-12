@@ -50,16 +50,14 @@ async def moveToPos(base, slam, x,y,theta):
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
     await base.spin(toMove, 45)
+    await base.move_straight(int(dist),100)
 """    while np.abs(currTheta-target_angle)>7:
         if currTheta<theta:
             await base.spin(5,45)
         else:
             await base.spin(-5,45)
         currPos = await slam.get_position()
-        currTheta = currPos.theta"""
-
-    """
-
+        currTheta = currPos.theta
     while np.abs(target_angle-currTheta)>5:
         toMove = (target_angle - currTheta + 180) % 360 -180
         print(currTheta)
@@ -68,7 +66,7 @@ async def moveToPos(base, slam, x,y,theta):
         await asyncio.sleep(0.1)
         currTheta = currPos.theta"""
         
-    await base.move_straight(int(dist),100)
+   
 
 async def findWaypt(base,slam, arrPos):
     print("going to new position")
