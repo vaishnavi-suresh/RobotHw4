@@ -85,39 +85,21 @@ async def findWaypt(base,slam, arrPos):
     print(f'trying to go to: theta= {arrPos[minIndex][2]}')
     return minIndex
 
-async def goThroughPath(base, slam, wpIndex, posArr):
-    # Iterate through waypoints from the current index
-    while wpIndex < len(posArr):
-        # Retrieve the current position of the robot
-        pos = await get_position(slam)
-        currX = pos.x
-        currY = pos.y
-        currTheta = pos.theta
-
-        # Get the current waypoint coordinates
-        wpX = posArr[wpIndex][0]
-        wpY = posArr[wpIndex][1]
-        wpTheta = posArr[wpIndex][2]
-
-        # Calculate the distance to the current waypoint
-        dist = getDist(currX, currY, wpX, wpY)
-        
-        # Check if we're close enough to the waypoint
-        if dist < 300:
-            # Move to the waypoint if within threshold
-            await moveToPos(base, slam, wpX, wpY, wpTheta)
-            print(f"go to next WP{wpIndex}")
-            # Move to the next waypoint
-            wpIndex += 1
+async def goThroughPath(orig,base,slam,wpIndex, posArr):
+    while wpIndex +1 != orig:
+        next =0
+        if wpIndex+1 < len(posArr):
+            next = wpIndex+1
+        c = closestToPath(base,slam,posArr)
+        if wpIndex != c:
+            moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
+            wpIndex = c
         else:
-            # If not close to the waypoint, find the nearest one to re-align
-            wpIndex = await closestToPath(base, slam, posArr)
+            moveToPos(base,slam,posArr[next][0],posArr[next][1],posArr[next][2])
+    
         
-        # Optional: Short delay for SLAM update, can adjust as needed
-        await asyncio.sleep(0.1)
-
-
-"""async def goThroughPath(base,slam,wpIndex, posArr):
+"""
+async def goThroughPath(base,slam,wpIndex, posArr):
     #iterate through waypoints
     #check if the next point is within 50 mm of the current pos
     #if not, use the goto function on the closest position
@@ -129,15 +111,18 @@ async def goThroughPath(base, slam, wpIndex, posArr):
     wpY = posArr[wpIndex][1]
     wpTheta = posArr[wpIndex][2]
     dist = getDist(currX,currY,wpX,wpY)
-    if dist <150:
+    await moveToPos(base,slam,wpX,wpY,wpTheta)
+    currX = pos.x
+    currY = pos.y
+    if dist <300:
         await moveToPos(base,slam,wpX,wpY,wpTheta)
         wpIndex+=1
         if wpIndex <len(posArr):
             await goThroughPath(base,slam,wpIndex,posArr)
     else:
         wpIndex = await closestToPath(base,slam,posArr)
-        await goThroughPath(base,slam,wpIndex,posArr)
-"""
+        await goThroughPath(base,slam,wpIndex,posArr)"""
+
     
 
 
@@ -195,6 +180,7 @@ async def main():
     print(f'currently at theta={theta}')
     
     wpIndex = await closestToPath(base,slam,wp)
+
     await goThroughPath(base,slam,wpIndex,wp)
 
     await robot.close()
