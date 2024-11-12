@@ -28,11 +28,12 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'theta={currTheta}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
-    toMove = (target_angle + 180) % 360
+    toMove = (target_angle - currTheta + 180) % 360
     print(f'moving to angle: {toMove}')
+    dist = getDist(currX,currY,x,y)
 
-    while np.abs(toMove) >5:
-        await base.spin(toMove/10,30)
+    while dist>100:
+        await base.spin(toMove,30)
         currPos = await slam.get_position()
         currX = currPos.x
         currY = currPos.y
@@ -40,9 +41,7 @@ async def moveToPos(base, slam, x,y,theta):
         target_angle_rad = np.arctan2(y - currY, x - currX)
         target_angle = np.degrees(target_angle_rad)
         toMove = (target_angle - currTheta + 180) % 360
-    dist = getDist(currX,currY,x,y)
-
-    await base.move_straight(int(dist),50)
+        await base.move_straight(int(dist),50)
 
 async def main():
     robot = await connect()
