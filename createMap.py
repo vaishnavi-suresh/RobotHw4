@@ -27,17 +27,18 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'theta={currTheta}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
-    toMove = (target_angle - currTheta + 180) % 360
+    toMove = (target_angle - currTheta + 180) % 360 -180
     print(f'moving to angle: {toMove}')
     dist = getDist(currX,currY,x,y)
+    await base.spin(toMove, 45)
 
-    while np.abs(target_angle-currTheta)>12:
+    """while np.abs(target_angle-currTheta)>12:
         if currTheta>target_angle:
             await base.spin(-10,45)
         else:
             await base.spin(10,45)
         currPos = await slam.get_position()
-        currTheta = currPos.theta
+        currTheta = currPos.theta"""
         
     await base.move_straight(int(dist),100)
 
