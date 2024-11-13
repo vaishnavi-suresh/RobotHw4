@@ -39,7 +39,7 @@ async def moveToPos(base, slam, x, y, theta):
     toMove = (target_angle - currTheta + 180) % 360 - 180
     
     print(f'Initial rotation needed: {toMove:.1f}°')
-    while np.abs(toMove) > 1:
+    while np.abs(toMove) > 2:  # Increased threshold from 1 to 2
         await base.spin(toMove/2, 45)
         currPos = await slam.get_position()
         currTheta = currPos.theta
@@ -47,7 +47,21 @@ async def moveToPos(base, slam, x, y, theta):
         
     dist = getDist(currX, currY, x, y)
     print(f'Moving forward: {dist:.1f}mm')
-    await base.move_straight(int(dist), 400)
+    
+    # Move in smaller steps if distance is large
+    max_step = 300  # Maximum step size
+    remaining_dist = dist
+    
+    while remaining_dist > 0:
+        step = min(remaining_dist, max_step)
+        await base.move_straight(int(step), 300)  # Reduced speed from 400 to 300
+        await asyncio.sleep(0.5)  # Small pause between movements
+        
+        # Update position and remaining distance
+        currPos = await slam.get_position()
+        remaining_dist = getDist(currPos.x, currPos.y, x, y)
+        if remaining_dist < 100:  # If close enough, consider it reached
+            break
 
 async def findWaypt(base, slam, arrPos):
     print("\nFinding closest waypoint...")
@@ -69,37 +83,44 @@ async def findWaypt(base, slam, arrPos):
     print(f'Selected waypoint {minIndex}: x={arrPos[minIndex][0]:.1f}, y={arrPos[minIndex][1]:.1f}, θ={arrPos[minIndex][2]:.1f}°')
     return minIndex
 
-async def goThroughPath(base, slam, wpIndex, posArr):
-    total_waypoints = len(posArr)
-    visited_count = 0
+async def goThroughPath(orig, base, slam, wpIndex, posArr):
+    visited = set()  # Track visited waypoints
+    max_attempts = 12  # Maximum attempts
+    attempts = 0
     
-    while visited_count < total_waypoints:
-        print(f"\nProcessing waypoint {wpIndex} of {total_waypoints-1}")
-        next_index = (wpIndex + 1) % total_waypoints
+    while len(visited) < len(posArr) and attempts < max_attempts:
+        attempts += 1
+        print(f"\nNavigation attempt {attempts}/{max_attempts}")
+        print(f"Visited waypoints: {visited}")
         
-        # Get current position
+        next_index = (wpIndex + 1) % len(posArr)
         pos = await get_position(slam)
         currX = pos.x
         currY = pos.y
         
-        # Distance to current waypoint
-        dist_to_current = getDist(currX, currY, posArr[wpIndex][0], posArr[wpIndex][1])
-        print(f"Distance to current waypoint: {dist_to_current:.1f}mm")
+        # Check distance to current waypoint
+        curr_dist = getDist(currX, currY, posArr[wpIndex][0], posArr[wpIndex][1])
+        print(f"Distance to current waypoint {wpIndex}: {curr_dist:.1f}mm")
         
-        if dist_to_current > 120:
-            print("Too far from waypoint, finding closest point")
+        if curr_dist > 150:  # Increased threshold from 120 to 150
+            print(f"Too far from waypoint {wpIndex}, recalculating...")
             new_index = await findWaypt(base, slam, posArr)
-            if new_index != wpIndex:
-                wpIndex = new_index
-                continue
-                
-        # Move to next waypoint
-        print(f"Moving to waypoint {next_index}")
-        await moveToPos(base, slam, posArr[next_index][0], posArr[next_index][1], posArr[next_index][2])
-        
-        wpIndex = next_index
-        visited_count += 1
-        print(f"Completed waypoint {wpIndex}, visited {visited_count} of {total_waypoints}")
+            await moveToPos(base, slam, posArr[new_index][0], posArr[new_index][1], posArr[new_index][2])
+            wpIndex = new_index
+        else:
+            print(f"Moving to waypoint {next_index}")
+            await moveToPos(base, slam, posArr[next_index][0], posArr[next_index][1], posArr[next_index][2])
+            visited.add(wpIndex)
+            wpIndex = next_index
+            
+        # If we're close to the final waypoint, add it to visited
+        if curr_dist < 150:
+            visited.add(wpIndex)
+            
+    if len(visited) == len(posArr):
+        print("Successfully completed the square!")
+    else:
+        print(f"Navigation ended after {attempts} attempts. Visited {len(visited)} of {len(posArr)} waypoints")
 
 async def main():
     robot = await connect()
@@ -117,11 +138,11 @@ async def main():
     base_origin_x = x + 50
     base_origin_y = y + 50
 
-    # Define square waypoints
+    # Define square waypoints (reduced size for better reliability)
     wp = [[0,0,0],
-          [600,0,90],
-          [600,600,180],
-          [0,600,-90]]
+          [500,0,90],    # Changed from 600
+          [500,500,180], # Changed from 600
+          [0,500,-90]]   # Changed from 600
           
     # Adjust waypoints relative to starting position
     for i in wp:
@@ -132,14 +153,12 @@ async def main():
     for i, point in enumerate(wp):
         print(f"Corner {i}: x={point[0]:.1f}, y={point[1]:.1f}, θ={point[2]}°")
 
-    # Find starting waypoint and begin navigation
     wpIndex = await findWaypt(base, slam, wp)
     print(f"\nStarting navigation from waypoint {wpIndex}")
-    await goThroughPath(base, slam, wpIndex, wp)
+    await goThroughPath(wpIndex, base, slam, wpIndex, wp)
     
     print("\nNavigation completed")
     await robot.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
-
