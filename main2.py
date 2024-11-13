@@ -216,9 +216,9 @@ async def main():
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [200,0,90],
-          [200,200,180],
-          [0,200,-90]]
+          [250,0,90],
+          [250,250,180],
+          [0,250,-90]]
     print(wp)
 
     for i in wp:
