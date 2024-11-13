@@ -1,4 +1,4 @@
-# main5.py
+
 import asyncio
 from viam.components.base import Base
 from viam.robot.client import RobotClient
@@ -162,3 +162,4 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
