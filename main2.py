@@ -36,7 +36,7 @@ async def closestToPath(currX,currY,slam, arrPos):
 async def computeAng(slam, target_angle):
     currPos = await slam.get_position()
     currTheta = currPos.theta
-    toMove = target_angle - currTheta
+    toMove = (target_angle - currTheta + 180) % 360 -180 
     return toMove
     
 async def moveAngle(base,slam,target_angle):
