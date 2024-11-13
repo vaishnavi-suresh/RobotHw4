@@ -185,8 +185,8 @@ async def main():
     x = pos.x
     y = pos.y
     theta = pos.theta
-    base_origin_x = x+50
-    base_origin_y = y+50
+    base_origin_x = x
+    base_origin_y = y
 
 
     #get a set of waypoints to track and populate them
