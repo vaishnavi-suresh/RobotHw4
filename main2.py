@@ -67,7 +67,7 @@ async def moveToPos(base, slam, x,y,theta):
         await moveAngle(base,slam,target_angle)
         await base.move_straight(int(dist/5),400)
         """
-    while np.abs(x-currX)>20 or np.abs(y-currY)>20:
+    while getDist(currX,currY,x,y)>77:
         currPos = await slam.get_position()
         currX = currPos.x
         currY = currPos.y
@@ -218,9 +218,9 @@ async def main():
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [250,0,90],
-          [250,250,180],
-          [0,250,-90]]
+          [200,0,90],
+          [200,200,180],
+          [0,200,-90]]
     print(wp)
 
     for i in wp:
