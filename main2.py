@@ -57,9 +57,9 @@ async def moveToPos(base, slam, x,y,theta):
     toMove = (target_angle - currTheta + 180) % 360 -180 
     print(f'moving to angle: {target_angle}')
     dist = getDist(currX,currY,x,y)
-    for i in range (3):
+    for i in range (1):
         await moveAngle(base,slam,toMove,target_angle)
-        await base.move_straight(int(dist/3),400)
+        await base.move_straight(int(dist/1),400)
 
 
 
@@ -118,7 +118,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         currX = pos.x
         currY = pos.y
         c = await findWaypt(currX,currY,slam,posArr)
-        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>150:
+        if np.abs(currX-posArr[wpIndex][0])>200 or np.abs(currX-posArr[wpIndex][1])>200:
             print("NOT CLOSEST")
                 
 
