@@ -108,6 +108,8 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         if wpIndex >= len(posArr):
             next = 1
             wpIndex = 0
+        elif next >= len(posArr):
+            next = 0
 
         await asyncio.sleep(0.1)
 
