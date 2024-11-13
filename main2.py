@@ -33,12 +33,18 @@ async def closestToPath(currX,currY,slam, arrPos):
     #await moveToPos(base,slam,baseX,baseY,baseTheta)
     return wpIndex
 
-async def moveAngle(base,slam,toMove,target_angle):
+async def computeAng(slam, target_angle):
+    currPos = await slam.get_position()
+    currTheta = currPos.theta
+    toMove = (target_angle - currTheta + 180) % 360 -180
+    return toMove
+    
+async def moveAngle(base,slam,target_angle):
+    toMove = await computeAng(slam,target_angle)
     while np.abs(toMove)>1:
+        toMove = await computeAng(slam,target_angle)
         await base.spin(toMove/2, 45)
-        currPos = await slam.get_position()
-        currTheta = currPos.theta
-        toMove = (target_angle - currTheta + 180) % 360 -180
+
 
 
 async def moveToPos(base, slam, x,y,theta):
@@ -54,12 +60,12 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'want y={y}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
-    toMove = (target_angle - currTheta + 180) % 360 -180 
+    #toMove = (target_angle - currTheta + 180) % 360 -180 
     print(f'moving to angle: {target_angle}')
     dist = getDist(currX,currY,x,y)
-    for i in range (1):
-        await moveAngle(base,slam,toMove,target_angle)
-        await base.move_straight(int(dist/1),400)
+    for i in range (5):
+        await moveAngle(base,slam,target_angle)
+        await base.move_straight(int(dist/5),400)
 
 
 
@@ -91,9 +97,11 @@ async def findWaypt(x,y,slam, arrPos):
     minDist = getDist(x,y,arrPos[0][0],arrPos[0][1])
     minIndex = 0
     for i in range(len (arrPos)):
+
         wpX = arrPos[i][0]
         wpY = arrPos[i][1]
         dist = getDist(x,y,wpX,wpY)
+        print (f'calculating distance x: {x} y = {y}, WPx = {wpX}, WPy = {wpY}, dist = {dist}')
         if dist<minDist:
             minDist = dist
             minIndex = i
