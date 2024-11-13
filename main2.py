@@ -78,7 +78,7 @@ async def moveToPos(base, slam, x,y,theta):
         
    
 
-async def findWaypt(base,slam, arrPos):
+async def findWaypt(slam, arrPos):
     print("going to new position")
     pos = await get_position(slam)
     x = pos.x
@@ -87,13 +87,13 @@ async def findWaypt(base,slam, arrPos):
     print(f'currently at x = {x}')
     print(f'currently at y = {y}')
     print(f'currently at theta = {theta}')
-    minDist = np.sqrt((y-arrPos[0][0])**2+(x-arrPos[0][1])**2)
+    minDist = getDist(x,y,arrPos[0][0],arrPos[0][0])
     minIndex = 0
     for i, wp in enumerate(arrPos):
         wpX = arrPos[i][0]
         wpY = arrPos[i][1]
         wpTheta = arrPos[i][2]
-        dist = np.sqrt((y-wpY)**2+(x-wpX)**2)
+        dist = getDist(x,y,wpX,wpY)
         if dist<minDist:
             minDist = dist
             minIndex = i
