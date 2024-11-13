@@ -218,6 +218,7 @@ async def main():
     print(f'currently at x={x}')
     print(f'currently at y={y}')
     print(f'currently at theta={theta}')
+    await moveToPos(base,slam,wp[0][0],wp[0][1],wp[0][2])
     
     wpIndex = await closestToPath(x,y,slam,wp)
 
