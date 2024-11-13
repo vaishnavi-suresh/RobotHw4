@@ -1,8 +1,3 @@
-
-
-# main7.py
-
-
 import asyncio
 from viam.components.base import Base, Vector3
 from viam.robot.client import RobotClient
@@ -24,6 +19,13 @@ async def get_position(slam):
 def getDist(currX, currY, wantX, wantY):
     return np.sqrt((wantX-currX)**2 + (wantY-currY)**2)
 
+async def moveAngle(base, slam, toMove, target_angle):
+    while np.abs(toMove) > 1:
+        await base.spin(toMove/2, 45)
+        currPos = await slam.get_position()
+        currTheta = currPos.theta
+        toMove = (target_angle - currTheta + 180) % 360 - 180
+
 async def moveToPos(base, slam, x, y, theta):
     print("move to point call")
     currPos = await slam.get_position()
@@ -36,56 +38,28 @@ async def moveToPos(base, slam, x, y, theta):
     print(f'want x={x}')
     print(f'want y={y}')
     
-    # Calculate initial angle to target
+    # Initial angle and distance calculation
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
-    
-    # Adjust rotation calculation to account for drift
-    # Using -200 instead of -180 as in your working version
-    toMove = (target_angle - currTheta + 180) % 360 - 200
-    
+    toMove = (target_angle - currTheta + 180) % 360 - 180
     print(f'moving to angle: {target_angle}')
-    print(f'rotation needed: {toMove}')
-    
-    # Perform rotation in smaller increments with position checks
-    while abs(toMove) > 1:
-        # Use smaller rotation steps
-        rotation_step = toMove / 2
-        if abs(rotation_step) > 30:  # Limit maximum rotation speed
-            rotation_step = 30 * np.sign(rotation_step)
-            
-        await base.spin(rotation_step, 45)
-        await asyncio.sleep(0.1)  # Small delay to allow position update
-        
-        # Update current position and recalculate needed rotation
-        currPos = await slam.get_position()
-        currTheta = currPos.theta
-        toMove = (target_angle - currTheta + 180) % 360 - 180
-    
-    # Calculate distance to target
     dist = getDist(currX, currY, x, y)
-    
-    # Move in smaller segments to reduce drift
-    segment_size = 200  # mm
-    remaining_dist = dist
-    
-    while remaining_dist > 50:  # Continue until within 50mm of target
-        move_dist = min(remaining_dist, segment_size)
-        await base.move_straight(int(move_dist), 300)  # Reduced speed from 400 to 300
+
+    # Move in 3 segments, updating position each time
+    for i in range(3):
+        # Align to target
+        await moveAngle(base, slam, toMove, target_angle)
         
-        # Update position and recalculate remaining distance
+        # Move forward one third of the distance
+        await base.move_straight(int(dist/3), 400)
+        
+        # Update position and recalculate angle to target
         currPos = await slam.get_position()
         currX = currPos.x
         currY = currPos.y
-        remaining_dist = getDist(currX, currY, x, y)
-        
-        # Check if we need to correct heading
-        if remaining_dist > 50:
-            target_angle_rad = np.arctan2(y - currY, x - currX)
-            target_angle = np.degrees(target_angle_rad)
-            toMove = (target_angle - currTheta + 180) % 360 - 200  # Using -200 compensation
-            if abs(toMove) > 5:  # Only correct if off by more than 5 degrees
-                await base.spin(toMove/2, 45)
+        target_angle_rad = np.arctan2(y - currY, x - currX)
+        target_angle = np.degrees(target_angle_rad)
+        toMove = (target_angle - currTheta + 180) % 360 - 180
 
 async def findWaypt(x, y, slam, arrPos):
     print("going to new position")
@@ -100,7 +74,7 @@ async def findWaypt(x, y, slam, arrPos):
         if dist < minDist:
             minDist = dist
             minIndex = i
-    
+
     print(f'trying to go to: x= {arrPos[minIndex][0]}')
     print(f'trying to go to: y= {arrPos[minIndex][1]}')
     print(f'trying to go to: theta= {arrPos[minIndex][2]}')
@@ -112,16 +86,12 @@ async def goThroughPath(orig, base, slam, wpIndex, posArr):
         next = 0
         if wpIndex + 1 < len(posArr):
             next = wpIndex + 1
-        
         await asyncio.sleep(0.5)
+
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
-        
-        # Find closest waypoint
         c = await findWaypt(currX, currY, slam, posArr)
-        
-        # Check if we're off course or too far from current waypoint
         if c != wpIndex or getDist(currX, currY, posArr[wpIndex][0], posArr[wpIndex][1]) > 200:
             print("NOT CLOSEST")
             print(c)
@@ -139,37 +109,34 @@ async def main():
     print('Resources:', robot.resource_names)
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')
+    motion = MotionClient.from_robot(robot, name="builtin")
     
-    # Initialize position and power
     internal_state = await slam.get_internal_state()
     await base.set_power(
         linear=Vector3(x=0, y=1, z=0),
         angular=Vector3(x=0, y=0, z=0.75)
     )
-    
-    # Get starting position
+
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
     theta = pos.theta
     base_origin_x = x + 50
     base_origin_y = y + 50
-    
-    # Define waypoints (smaller square than original)
+
+    # Larger square path (1000mm)
     wp = [
         [0, 0, 0],
-        [500, 0, 90],    # Using 500mm instead of 600mm
-        [500, 500, 180],
-        [0, 500, -90]
+        [1000, 0, 90],
+        [1000, 1000, 180],
+        [0, 1000, -90]
     ]
     
-    # Adjust waypoints relative to starting position
     for i in wp:
         i[0] += base_origin_x
         i[1] += base_origin_y
     print(wp)
-    
-    # Get initial position and start path following
+
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
