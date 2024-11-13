@@ -1,4 +1,5 @@
 # main7.py 
+# bascically main2 without 5 discrete steps
 
 import asyncio
 from viam.components.base import Base, Vector3
