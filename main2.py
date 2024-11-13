@@ -249,7 +249,7 @@ async def main():
     await moveToPos(base,slam,wp[0][0],wp[0][1],wp[0][2])
     
     wpIndex = 0
-    orig = 1
+    orig = 0
 
     await goThroughPath(orig,base,slam,wpIndex,wp)
 
