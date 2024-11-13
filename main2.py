@@ -104,10 +104,11 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         next =0
         if wpIndex+1 < len(posArr):
             next = wpIndex+1
+        await asyncio.sleep(0.5)
+
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
-        await asyncio.sleep(0.5)
         c = await findWaypt(currX,currY,slam,posArr)
         if np.abs(currX-posArr[wpIndex][0])>110 and np.abs(currY-posArr[wpIndex][1])>110:
             print("NOT CLOSEST")
