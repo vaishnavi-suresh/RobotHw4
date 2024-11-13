@@ -189,11 +189,11 @@ async def main():
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
           [400,0,90],
-          [400,800,180],
+          [400,400,180],
           [0,400,-90]]
-    for i in wp:
+"""    for i in wp:
         i[0]+=base_origin_x
-        i[1] += base_origin_y
+        i[1] += base_origin_y"""
     print(wp)
     """
     for i in range(10):
