@@ -5,7 +5,6 @@ from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
 from viam.services.motion import MotionClient
-
 import numpy as np
 
 async def connect():
@@ -16,7 +15,7 @@ async def connect():
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
 
 async def get_position(slam):
-    position = await slam.get_position()
+    position = await slam.get_position()  # This depends on your specific SLAM client
     return position
 
 def getDist(currX, currY, wantX, wantY):
@@ -25,44 +24,53 @@ def getDist(currX, currY, wantX, wantY):
 async def findWaypt(slam, arrPos):
     print("Finding the closest waypoint to current position...")
     pos = await get_position(slam)
-    x, y, theta = pos.x, pos.y, pos.theta
-    print(f'Current Position -> x: {x}, y: {y}, theta: {theta}')
+    x = pos.x
+    y = pos.y
+    theta = pos.theta
+    print(f'Currently at x = {x}')
+    print(f'Currently at y = {y}')
+    print(f'Currently at theta = {theta}')
 
-    minDist = getDist(x, y, arrPos[0][0], arrPos[0][1])
+    minDist = getDist(x, y, arrPos[0][0], arrPos[0][1])  
     minIndex = 0
-    for i in range(1, len(arrPos)):
-        wpX, wpY = arrPos[i][0], arrPos[i][1]
+    for i in range(len(arrPos)):
+        wpX = arrPos[i][0]
+        wpY = arrPos[i][1]
         dist = getDist(x, y, wpX, wpY)
         if dist < minDist:
             minDist = dist
             minIndex = i
 
-    print(f'Closest waypoint index: {minIndex}')
-    print(f'Waypoint coordinates -> x: {arrPos[minIndex][0]}, y: {arrPos[minIndex][1]}, theta: {arrPos[minIndex][2]}')
+    print(f'Trying to go to: x= {arrPos[minIndex][0]}, y= {arrPos[minIndex][1]}, theta= {arrPos[minIndex][2]}')
     return minIndex
+
+async def closestToPath(base, slam, arrPos):
+    wpIndex = await findWaypt(slam, arrPos)
+    return wpIndex
 
 async def moveToPos(base, slam, x, y, theta):
     print("Initiating movement to target position...")
-    pos = await get_position(slam)
-    currX, currY, currTheta = pos.x, pos.y, pos.theta
-    print(f'Current Position -> x: {currX}, y: {currY}, theta: {currTheta}')
-    print(f'Target Position -> x: {x}, y: {y}, theta: {theta}')
+    currPos = await slam.get_position()
+    currX = currPos.x
+    currY = currPos.y
+    currTheta = currPos.theta
+    print(f'Current Position -> x={currX}, y={currY}, theta={currTheta}')
+    print(f'Target Position -> x={x}, y={y}')
 
     # Calculate the angle to the target
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
     toMove = (target_angle - currTheta + 180) % 360 - 180
-    print(f'Target Angle: {target_angle} degrees')
-    print(f'Angle to Move: {toMove} degrees')
+    print(f'Moving to angle: {target_angle} degrees')
 
     # Rotate to face the target
     while np.abs(toMove) > 1:
-        spin_angle = np.clip(toMove, -30, 30)  # Limit spin rate for stability
+        spin_angle = toMove / 2  # You might want to limit this value for stability
         await base.spin(spin_angle, 45)
-        pos = await get_position(slam)
-        currTheta = pos.theta
+        currPos = await slam.get_position()
+        currTheta = currPos.theta
         toMove = (target_angle - currTheta + 180) % 360 - 180
-        print(f'Adjusting Angle -> Current Theta: {currTheta}, Remaining to Move: {toMove}')
+        print(f'Adjusting Angle -> Current Theta: {currTheta}, Remaining to Move: {toMove} degrees')
 
     # Move straight to the target
     dist = getDist(currX, currY, x, y)
@@ -70,81 +78,86 @@ async def moveToPos(base, slam, x, y, theta):
     await base.move_straight(int(dist), 400)
     print("Movement command issued.")
 
-async def monitor_and_recover(base, slam, posArr, current_wp_index):
-    while True:
-        pos = await get_position(slam)
-        closest_wp_index = await findWaypt(slam, posArr)
-        dist = getDist(pos.x, pos.y, posArr[closest_wp_index][0], posArr[closest_wp_index][1])
-        if dist > 150:  # Threshold for recovery
-            print("Significant deviation detected. Initiating recovery...")
-            await moveToPos(base, slam, posArr[closest_wp_index][0], posArr[closest_wp_index][1], posArr[closest_wp_index][2])
-            current_wp_index = closest_wp_index
-        await asyncio.sleep(1)  # Check every second
+async def goThroughPath(base, slam, wpIndex, posArr):
+    while wpIndex < len(posArr):
+        current_wp = posArr[wpIndex]
+        print(f"Navigating to waypoint {wpIndex}: {current_wp}")
+        await moveToPos(base, slam, current_wp[0], current_wp[1], current_wp[2])
 
-async def goThroughPath(base, slam, posArr):
-    wpIndex = await findWaypt(slam, posArr)
-    total_waypoints = len(posArr)
-    
-    # Start the monitor task
-    monitor_task = asyncio.create_task(monitor_and_recover(base, slam, posArr, wpIndex))
-    
-    for _ in range(total_waypoints):
-        print(f"Navigating to waypoint {wpIndex}: {posArr[wpIndex]}")
-        await moveToPos(base, slam, posArr[wpIndex][0], posArr[wpIndex][1], posArr[wpIndex][2])
-        
         # Wait until the rover is close to the waypoint
-        while True:
+        pos = await get_position(slam)
+        dist = getDist(pos.x, pos.y, current_wp[0], current_wp[1])
+        print(f'Distance to waypoint {wpIndex}: {dist} units')
+        while dist > 50:  # Threshold can be adjusted
+            print(f"Still {dist} units away from waypoint {wpIndex}. Adjusting...")
+            await asyncio.sleep(1)  # Wait before re-checking
             pos = await get_position(slam)
-            dist = getDist(pos.x, pos.y, posArr[wpIndex][0], posArr[wpIndex][1])
-            if dist < 50:  # Threshold can be adjusted
-                print(f"Reached waypoint {wpIndex}")
-                break
-            await asyncio.sleep(0.5)
-        
-        # Move to next waypoint
-        wpIndex = (wpIndex + 1) % total_waypoints
-    
-    # Cancel the monitor task once done
-    monitor_task.cancel()
-    try:
-        await monitor_task
-    except asyncio.CancelledError:
-        pass
+            dist = getDist(pos.x, pos.y, current_wp[0], current_wp[1])
+
+        print(f"Reached waypoint {wpIndex}")
+
+        # Perturbation Recovery: Use Euclidean distance
+        distance = getDist(pos.x, pos.y, current_wp[0], current_wp[1])
+        if distance > 110:
+            print("NOT CLOSEST")
+            closest_wp = await findWaypt(slam, posArr)
+            print(f"Closest waypoint index: {closest_wp}")
+            await moveToPos(base, slam, posArr[closest_wp][0], posArr[closest_wp][1], posArr[closest_wp][2])
+            wpIndex = closest_wp
+        else:
+            wpIndex += 1
 
 async def main():
-    robot = await connect()
-    print('Connected to Robot. Resources:', robot.resource_names)
+    try:
+        robot = await connect()
+        print('Resources:', robot.resource_names)
 
-    base = Base.from_robot(robot, 'viam_base')
-    slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
-    motion = MotionClient.from_robot(robot, name="builtin")
+        base = Base.from_robot(robot, 'viam_base')
+        slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
+        motion = MotionClient.from_robot(robot, name="builtin")
 
-    # Get initial position
-    pos = await slam.get_position()
-    x, y, theta = pos.x, pos.y, pos.theta
-    print(f'Initial Position -> x: {x}, y: {y}, theta: {theta}')
+        # Get initial position
+        pos = await slam.get_position()
+        x = pos.x
+        y = pos.y
+        theta = pos.theta
+        base_origin_x = x + 50
+        base_origin_y = y + 50
 
-    # Define waypoints (example: square path)
-    wp = [
-        [0, 0, 0],
-        [600, 0, 90],
-        [600, 600, 180],
-        [0, 600, -90]
-    ]
+        # Define waypoints (example: square path)
+        wp = [
+            [0, 0, 0],
+            [600, 0, 90],
+            [600, 600, 180],
+            [0, 600, -90]
+        ]
+        for waypoint in wp:
+            waypoint[0] += base_origin_x
+            waypoint[1] += base_origin_y
+        print("Adjusted Waypoints:", wp)
 
-    # Adjust waypoints based on initial position
-    base_origin_x = x + 50
-    base_origin_y = y + 50
-    for waypoint in wp:
-        waypoint[0] += base_origin_x
-        waypoint[1] += base_origin_y
-    print("Adjusted Waypoints:", wp)
+        # Optional: Remove redundant position retrieval
+        # pos = await slam.get_position()
+        # x = pos.x
+        # y = pos.y
+        # theta = pos.theta
+        # print(f'currently at x={x}')
+        # print(f'currently at y={y}')
+        # print(f'currently at theta={theta}')
 
-    # Start navigating through waypoints
-    await goThroughPath(base, slam, wp)
+        # Find the closest waypoint to start
+        wpIndex = await closestToPath(base, slam, wp)
+        print(f"Starting navigation from waypoint index: {wpIndex}")
 
-    await robot.close()
-    print("Robot connection closed.")
+        # Start navigating through waypoints
+        await goThroughPath(base, slam, wpIndex, wp)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    finally:
+        await robot.close()
+        print("Robot connection closed.")
 
 if __name__ == '__main__':
     asyncio.run(main())
