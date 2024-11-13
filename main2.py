@@ -166,7 +166,7 @@ async def main():
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
     motion = MotionClient.from_robot(robot,name="builtin")
-    internal_state = slam.get_internal_state()
+    #internal_state = slam.get_internal_state()
 
     pos = await slam.get_position()
     x = pos.x
