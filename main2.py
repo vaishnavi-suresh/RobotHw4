@@ -108,7 +108,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         next =0
         if wpIndex+1 < len(posArr):
             next = wpIndex+1
-        c = await findWaypt(base,slam,posArr)
+        c = await findWaypt(slam,posArr)
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
