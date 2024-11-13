@@ -67,7 +67,7 @@ async def moveToPos(base, slam, x,y,theta):
         await moveAngle(base,slam,target_angle)
         await base.move_straight(int(dist/5),400)
         """
-    while dist >220:
+    while dist >90:
         await moveAngle(base,slam,target_angle)
         await base.move_straight(int(dist/2),400)
         currPos = await slam.get_position()
@@ -213,9 +213,9 @@ async def main():
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [600,0,90],
-          [600,600,180],
-          [0,600,-90]]
+          [300,0,90],
+          [300,300,180],
+          [0,300,-90]]
     print(wp)
 
     for i in wp:
@@ -245,7 +245,7 @@ async def main():
     print(f'currently at theta={theta}')
     await moveToPos(base,slam,wp[0][0],wp[0][1],wp[0][2])
     
-    wpIndex = await closestToPath(x,y,slam,wp)
+    wpIndex = 0
 
     await goThroughPath(wpIndex,base,slam,wpIndex,wp)
 
