@@ -205,7 +205,7 @@ async def main():
     print(f'currently at y={y}')
     print(f'currently at theta={theta}')
     
-    wpIndex = await closestToPath(base,slam,wp)
+    wpIndex = await closestToPath(x,y,slam,wp)
 
     await goThroughPath(wpIndex,base,slam,wpIndex,wp)
 
