@@ -1,6 +1,7 @@
 # main2.py
 import asyncio
 from viam.components.base import Base
+from viam.components.base import Vector3
 from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
@@ -167,6 +168,9 @@ async def main():
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
     motion = MotionClient.from_robot(robot,name="builtin")
     internal_state = slam.get_internal_state()
+    await base.set_power(
+    linear=Vector3(x=0, y=1, z=0),
+    angular=Vector3(x=0, y=0, z=0.75))
 
     pos = await slam.get_position()
     x = pos.x
