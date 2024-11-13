@@ -89,10 +89,9 @@ async def findWaypt(slam, arrPos):
     print(f'currently at theta = {theta}')
     minDist = getDist(x,y,arrPos[0][0],arrPos[0][0])
     minIndex = 0
-    for i, wp in enumerate(arrPos):
+    for i in len (arrPos):
         wpX = arrPos[i][0]
         wpY = arrPos[i][1]
-        wpTheta = arrPos[i][2]
         dist = getDist(x,y,wpX,wpY)
         if dist<minDist:
             minDist = dist
