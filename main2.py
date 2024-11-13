@@ -109,7 +109,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             next = 1
             wpIndex = 0
 
-        #await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)
 
         pos = await slam.get_position()
         currX = pos.x
