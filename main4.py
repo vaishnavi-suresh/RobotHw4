@@ -136,7 +136,7 @@ async def main():
     robot = await connect()
     print('resources:', robot.resource_names)
     base = Base.from_robot(robot, 'viam_base')
-    slam = SLAMClient.from_robot(robot, 'slam-1')
+    slam = SLAMClient.from_robot(robot, 'slam-2')
     
     pos = await get_position(slam) #get initial position
     base_origin_x = pos.x
