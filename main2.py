@@ -113,7 +113,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
-        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>500:
+        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>300:
             print("NOT CLOSEST")
             await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
@@ -175,9 +175,9 @@ async def main():
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [700,0,90],
-          [700,700,180],
-          [0,700,-90]]
+          [300,0,90],
+          [300,300,180],
+          [0,300,-90]]
     for i in wp:
         i[0]+=base_origin_x
         i[1] += base_origin_y
