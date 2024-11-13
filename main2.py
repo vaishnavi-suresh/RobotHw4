@@ -29,7 +29,7 @@ async def closestToPath(base,slam, arrPos):
     baseX = arrPos[wpIndex][0]
     baseY = arrPos[wpIndex][1]
     baseTheta = arrPos[wpIndex][2]
-    await moveToPos(base,slam,baseX,baseY,baseTheta)
+    #await moveToPos(base,slam,baseX,baseY,baseTheta)
     return wpIndex
 
 
