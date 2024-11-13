@@ -248,9 +248,10 @@ async def main():
     print(f'currently at theta={theta}')
     await moveToPos(base,slam,wp[0][0],wp[0][1],wp[0][2])
     
-    wpIndex = 1
+    wpIndex = 0
+    orig = 1
 
-    await goThroughPath(wpIndex,base,slam,wpIndex,wp)
+    await goThroughPath(orig,base,slam,wpIndex,wp)
 
     await robot.close()
 
