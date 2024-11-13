@@ -87,7 +87,7 @@ async def findWaypt(slam, arrPos):
     print(f'currently at x = {x}')
     print(f'currently at y = {y}')
     print(f'currently at theta = {theta}')
-    minDist = getDist(x,y,arrPos[0][0],arrPos[0][0])
+    minDist = getDist(x,y,arrPos[0][0],arrPos[0][1])
     minIndex = 0
     for i in range(len (arrPos)):
         wpX = arrPos[i][0]
@@ -112,8 +112,10 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
-        if np.abs(currX-posArr[next][0])>120 and np.abs(currY-posArr[next][1])>120:
+        if getDist(currX,currY,wpIndex[next][0],wpIndex[next][1]):
             print("NOT CLOSEST")
+                
+
             print(c)
             await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
