@@ -117,7 +117,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         currX = pos.x
         currY = pos.y
         c = await findWaypt(currX,currY,slam,posArr)
-        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>200:
+        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>150:
             print("NOT CLOSEST")
                 
 
