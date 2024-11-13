@@ -54,7 +54,7 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'want y={y}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
-    toMove = (target_angle - currTheta + 180) % 360 -180 
+    toMove = (target_angle - currTheta + 175) % 360 -180 
     print(f'moving to angle: {target_angle}')
     dist = getDist(currX,currY,x,y)
     await moveAngle(base,slam,toMove,target_angle)
@@ -186,9 +186,9 @@ async def main():
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [600,0,90],
-          [600,600,180],
-          [0,600,-90]]
+          [800,0,90],
+          [800,800,180],
+          [0,800,-90]]
     for i in wp:
         i[0]+=base_origin_x
         i[1] += base_origin_y
