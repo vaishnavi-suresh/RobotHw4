@@ -168,16 +168,16 @@ async def main():
     x = pos.x
     y = pos.y
     theta = pos.theta
-    base_origin_x = x+200
-    base_origin_y = y+200
+    base_origin_x = x+100
+    base_origin_y = y+100
 
 
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [1000,0,90],
-          [1000,1000,180],
-          [0,1000,-90]]
+          [600,0,90],
+          [600,600,180],
+          [0,600,-90]]
     for i in wp:
         i[0]+=base_origin_x
         i[1] += base_origin_y
