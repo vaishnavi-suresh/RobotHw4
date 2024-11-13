@@ -155,9 +155,9 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             await moveToPos(base,slam,posArr[next][0],posArr[next][1],posArr[next][2])
             await asyncio.sleep(0.5)
             wpIndex+=1
+            if wpIndex ==orig:
+                break
             next = wpIndex+1
-        if next == 2:
-            break
     
         
 """
@@ -248,7 +248,7 @@ async def main():
     print(f'currently at theta={theta}')
     await moveToPos(base,slam,wp[0][0],wp[0][1],wp[0][2])
     
-    wpIndex = 0
+    wpIndex = 1
 
     await goThroughPath(wpIndex,base,slam,wpIndex,wp)
 
