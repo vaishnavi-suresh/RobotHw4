@@ -110,7 +110,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         currX = pos.x
         currY = pos.y
         c = await findWaypt(currX,currY,slam,posArr)
-        if np.abs(currX-posArr[wpIndex][0])>200 and np.abs(currY-posArr[wpIndex][1])>200:
+        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1]):
             print("NOT CLOSEST")
                 
 
@@ -165,10 +165,11 @@ async def goThroughPath(base,slam,wpIndex, posArr):
 async def main():
     robot = await connect()
     print('Resources:', robot.resource_names)
-
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
     motion = MotionClient.from_robot(robot,name="builtin")
+    internal_state = slam.get_internal_state()
+
     pos = await slam.get_position()
     x = pos.x
     y = pos.y
