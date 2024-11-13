@@ -57,7 +57,7 @@ async def moveToPos(base, slam, x,y,theta):
     toMove = (target_angle - currTheta + 180) % 360 -180 
     print(f'moving to angle: {target_angle}')
     dist = getDist(currX,currY,x,y)
-    for i in range(3):
+    for i in range(2):
         await moveAngle(base,slam,toMove,target_angle)
         await base.move_straight(int(dist/3),400)
         currPos = await slam.get_position()
