@@ -28,12 +28,19 @@ async def closestToPath(currX, currY, slam, arrPos):
     return wpIndex
 
 async def moveAngle(base, slam, toMove, target_angle):
-    while np.abs(toMove) > 1:
-        await base.spin(toMove / 2, 45)
+    max_spin_attempts = 10  # Prevent infinite spinning
+    spin_attempts = 0
+    while np.abs(toMove) > 1 and spin_attempts < max_spin_attempts:
+        spin_direction = toMove / 2  # Spin half the required angle for stability
+        print(f'Spining by {spin_direction:.2f} degrees.')
+        await base.spin(spin_direction, 45)
         currPos = await slam.get_position()
         currTheta = currPos.theta
         toMove = (target_angle - currTheta + 180) % 360 - 180
-        print(f'Adjusted angle: {toMove}')
+        print(f'Adjusted angle: {toMove:.2f} degrees.')
+        spin_attempts += 1
+    if spin_attempts >= max_spin_attempts:
+        print("Max spin attempts reached. Proceeding with current orientation.")
 
 async def moveToPos(base, slam, x, y, theta):
     print("move to point call")
@@ -47,44 +54,40 @@ async def moveToPos(base, slam, x, y, theta):
     print(f'want x={x}')
     print(f'want y={y}')
     
-    # Initial approach
+    # Calculate target angle
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
     toMove = (target_angle - currTheta + 180) % 360 - 180 
-    print(f'moving to angle: {target_angle}')
+    print(f'moving to angle: {target_angle:.2f} degrees.')
     dist = getDist(currX, currY, x, y)
+    print(f'Distance to target: {dist:.2f} units.')
     
-    # First movement
+    # Spin to target angle
     await moveAngle(base, slam, toMove, target_angle)
-    await base.move_straight(int(dist / 2), 400)
     
-    # Update position and complete journey
-    currPos = await slam.get_position()
-    currX = currPos.x
-    currY = currPos.y
-    currTheta = currPos.theta
-    
-    # Recalculate for final approach
-    target_angle_rad = np.arctan2(y - currY, x - currX)
-    target_angle = np.degrees(target_angle_rad)
-    toMove = (target_angle - currTheta + 180) % 360 - 180
-    dist = getDist(currX, currY, x, y)
-    
-    # Complete the movement
-    await moveAngle(base, slam, toMove, target_angle)
+    # Move straight to target position
+    print(f'Moving straight for {int(dist)} units at speed 400.')
     await base.move_straight(int(dist), 400)
+    
+    # Optionally, verify if the rover reached the position
+    await asyncio.sleep(1)  # Wait for movement to complete
+    currPos = await slam.get_position()
+    new_dist = getDist(currPos.x, currPos.y, x, y)
+    print(f'Post-move distance to target: {new_dist:.2f} units.')
+    if new_dist > 50:
+        print("Warning: Rover did not reach the target position accurately.")
 
 async def goThroughPath(base, slam, wpIndex, posArr):
     iterations = 0
     max_iterations = 20  # Safety limit to prevent infinite loops
     
-    while iterations < max_iterations:
+    while iterations < max_iterations and wpIndex < len(posArr):
         next_wp = wpIndex + 1
         if next_wp >= len(posArr):
             next_wp = 0  # Loop back to the first waypoint
-
-        await asyncio.sleep(0.5)
-
+    
+        await asyncio.sleep(0.5)  # Brief pause between actions
+    
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
@@ -92,21 +95,20 @@ async def goThroughPath(base, slam, wpIndex, posArr):
         
         # More robust position check using Euclidean distance
         distance = getDist(currX, currY, posArr[wpIndex][0], posArr[wpIndex][1])
-        if distance > 150:
+        print(f'Current distance to waypoint {wpIndex}: {distance:.2f} units.')
+        if distance > 200:
             print("NOT CLOSEST")
-            print(c)
+            print(f'Closest waypoint index: {c}')
             await moveToPos(base, slam, posArr[c][0], posArr[c][1], posArr[c][2])
             wpIndex = c
             next_wp = wpIndex + 1
+            if next_wp >= len(posArr):
+                next_wp = 0
         else:
-            print("next wp")
-            print(next_wp)
+            print("Next waypoint")
+            print(f'Next waypoint index: {next_wp}')
             await moveToPos(base, slam, posArr[next_wp][0], posArr[next_wp][1], posArr[next_wp][2])
             wpIndex = next_wp
-        
-        # Check if we've completed a loop
-        if wpIndex >= len(posArr):
-            wpIndex = 0
         
         iterations += 1
     
