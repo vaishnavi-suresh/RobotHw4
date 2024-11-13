@@ -156,7 +156,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             await asyncio.sleep(0.5)
             wpIndex+=1
             next = wpIndex+1
-        if next == orig+1:
+        if next == 2:
             break
     
         
