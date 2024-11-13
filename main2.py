@@ -25,7 +25,7 @@ def getDist (currX, currY, wantX, wantY):
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
 
 async def closestToPath(base,slam, arrPos):
-    wpIndex = await findWaypt(base,slam,arrPos)
+    wpIndex = await findWaypt(slam,arrPos)
     baseX = arrPos[wpIndex][0]
     baseY = arrPos[wpIndex][1]
     baseTheta = arrPos[wpIndex][2]
