@@ -193,7 +193,7 @@ async def main():
           [0,400,-90]]
     print(wp)
 
-"""    for i in wp:
+    """    for i in wp:
         i[0]+=base_origin_x
         i[1] += base_origin_y
     
