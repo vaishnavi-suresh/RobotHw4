@@ -24,8 +24,8 @@ def getDist (currX, currY, wantX, wantY):
     want = (wantX,wantY)
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
 
-async def closestToPath(base,slam, arrPos):
-    wpIndex = await findWaypt(slam,arrPos)
+async def closestToPath(currX,currY,slam, arrPos):
+    wpIndex = await findWaypt(currX,currY,slam,arrPos)
     baseX = arrPos[wpIndex][0]
     baseY = arrPos[wpIndex][1]
     baseTheta = arrPos[wpIndex][2]
@@ -78,15 +78,11 @@ async def moveToPos(base, slam, x,y,theta):
         
    
 
-async def findWaypt(slam, arrPos):
+async def findWaypt(x,y,slam, arrPos):
     print("going to new position")
-    pos = await get_position(slam)
-    x = pos.x
-    y = pos.y
-    theta = pos.theta
+   
     print(f'currently at x = {x}')
     print(f'currently at y = {y}')
-    print(f'currently at theta = {theta}')
     minDist = getDist(x,y,arrPos[0][0],arrPos[0][1])
     minIndex = 0
     for i in range(len (arrPos)):
@@ -108,16 +104,17 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         next =0
         if wpIndex+1 < len(posArr):
             next = wpIndex+1
-        c = await findWaypt(slam,posArr)
+        
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
+        c = await findWaypt(currX,currY,slam,posArr)
         if np.abs(currX-posArr[wpIndex][0])>110 and np.abs(currY-posArr[wpIndex][1])>110:
             print("NOT CLOSEST")
                 
 
             print(c)
-            await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
+            await moveToPos(currX,currY,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
             next = c+1
         else:
