@@ -40,9 +40,9 @@ async def computeAng(slam, target_angle):
     return toMove
     
 async def moveAngle(base,slam,target_angle):
-    toMove = computeAng(slam,target_angle)
+    toMove = await computeAng(slam,target_angle)
     while np.abs(toMove)>1:
-        toMove = computeAng(slam,target_angle)
+        toMove = await computeAng(slam,target_angle)
         await base.spin(toMove/2, 45)
 
 
@@ -64,7 +64,7 @@ async def moveToPos(base, slam, x,y,theta):
     print(f'moving to angle: {target_angle}')
     dist = getDist(currX,currY,x,y)
     for i in range (5):
-        toMove = await moveAngle(base,slam,target_angle)
+        await moveAngle(base,slam,target_angle)
         await base.move_straight(int(dist/5),400)
 
 
