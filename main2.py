@@ -123,8 +123,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             print("next wp")
             print(next)
             await moveToPos(base,slam,posArr[next][0],posArr[next][1],posArr[next][2])
-            asyncio.sleep(0.5)
-
+\
             wpIndex+=1
     
         
