@@ -114,10 +114,10 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
                 
 
             print(c)
-            await moveToPos(currX,currY,posArr[c][0],posArr[c][1],posArr[c][2])
+            await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
             next = c+1
-        else:
+        else:639
             print("next wp")
             print(next)
             await moveToPos(base,slam,posArr[next][0],posArr[next][1],posArr[next][2])
