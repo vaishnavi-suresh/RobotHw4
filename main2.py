@@ -67,12 +67,13 @@ async def moveToPos(base, slam, x,y,theta):
         await moveAngle(base,slam,target_angle)
         await base.move_straight(int(dist/5),400)
         """
-    while dist >85:
-        await moveAngle(base,slam,target_angle)
-        await base.move_straight(int(dist/2),400)
+    while dist >70:
         currPos = await slam.get_position()
         currX = currPos.x
         currY = currPos.y
+        await moveAngle(base,slam,target_angle)
+        await base.move_straight(int(dist/2),400)
+        
         dist = getDist(currX,currY,x,y)
 
 
@@ -155,9 +156,10 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             await moveToPos(base,slam,posArr[next][0],posArr[next][1],posArr[next][2])
             await asyncio.sleep(0.5)
             wpIndex+=1
-            if wpIndex ==orig:
-                break
+            
             next = wpIndex+1
+        if wpIndex ==orig:
+                break
     
         
 """
