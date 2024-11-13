@@ -103,7 +103,7 @@ async def findWaypt(x,y,slam, arrPos):
     return minIndex
 
 async def goThroughPath(orig,base,slam,wpIndex, posArr):
-    next = 0
+    next = wpIndex+1
     while next != orig:
         if next < len(posArr):
             next = 1
