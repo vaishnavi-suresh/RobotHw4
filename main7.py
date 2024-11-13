@@ -1,4 +1,3 @@
-# # main7.py
 import asyncio
 from viam.components.base import Base
 from viam.components.base import Vector3
