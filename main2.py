@@ -113,7 +113,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
-        if getDist(currX,currY,posArr[wpIndex][0],posArr[wpIndex][1])>300:
+        if np.abs(currX-posArr[next][0])>120 and np.abs(currY-posArr[next][1])>120:
             print("NOT CLOSEST")
             await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             wpIndex = c
