@@ -108,7 +108,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
         next =0
         if wpIndex+1 < len(posArr):
             next = wpIndex+1
-        await asyncio.sleep(0.5)
+        #await asyncio.sleep(0.5)
 
         pos = await slam.get_position()
         currX = pos.x
@@ -188,9 +188,9 @@ async def main():
     #get a set of waypoints to track and populate them
     #wp = np.zeros((40,3))
     wp = [[0,0,0],
-          [400,0,90],
-          [400,400,180],
-          [0,400,-90]]
+          [600,0,90],
+          [600,600,180],
+          [0,600,-90]]
     print(wp)
 
     """    for i in wp:
