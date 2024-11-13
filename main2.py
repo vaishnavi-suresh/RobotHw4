@@ -48,7 +48,7 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'want y={y}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
-    toMove = (target_angle - currTheta + 180) % 360 -180
+    toMove = (target_angle - currTheta + 180) % 360 -170 # not subtracting 180 to account for drift
     print(f'moving to angle: {target_angle}')
     dist = getDist(currX,currY,x,y)
     while np.abs(toMove)>1:
@@ -167,7 +167,7 @@ async def main():
     base = Base.from_robot(robot, 'viam_base')
     slam = SLAMClient.from_robot(robot, 'slam-2')  # Initialize SLAM
     motion = MotionClient.from_robot(robot,name="builtin")
-    internal_state = slam.get_internal_state()
+    internal_state = await slam.get_internal_state()
     await base.set_power(
     linear=Vector3(x=0, y=1, z=0),
     angular=Vector3(x=0, y=0, z=0.75))
