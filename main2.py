@@ -204,7 +204,7 @@ async def main():
     motion = MotionClient.from_robot(robot,name="builtin")
     internal_state = await slam.get_internal_state()
     await base.set_power(
-    linear=Vector3(x=0, y=1, z=0),
+    linear=Vector3(x=0, y=0.5, z=0),
     angular=Vector3(x=0, y=0, z=0.75))
 
     pos = await slam.get_position()
