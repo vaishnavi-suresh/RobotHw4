@@ -67,7 +67,7 @@ async def moveToPos(base, slam, x,y,theta):
         await moveAngle(base,slam,target_angle)
         await base.move_straight(int(dist/5),400)
         """
-    while getDist(currX,currY,x,y)>77:
+    while getDist(currX,currY,x,y)>83:
         currPos = await slam.get_position()
         currX = currPos.x
         currY = currPos.y
