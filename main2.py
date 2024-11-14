@@ -6,32 +6,18 @@ from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
 from viam.services.slam import SLAMClient
 from viam.services.motion import MotionClient
-import scipy
 
 
 import numpy as np
 async def connect():
     opts = RobotClient.Options.with_api_key(
-        api_key='i11ph4btwvdp1kixh3oveex92tmvdtx2',
-        api_key_id='8b19e462-949d-4cf3-9f7a-5ce0854eb7b8'
+        api_key='YOUR API KEY',
+        api_key_id='API KEY ID'
     )
     return await RobotClient.at_address('rover6-main.9883cqmu1w.viam.cloud', opts)
-async def get_position(slam):
-    position = await slam.get_position()  # This depends on your specific SLAM client
-    return position
 
 def getDist (currX, currY, wantX, wantY):
-    curr = (currX,currY)
-    want = (wantX,wantY)
     return np.sqrt((wantX-currX)**2+(wantY-currY)**2)
-
-async def closestToPath(currX,currY,slam, arrPos):
-    wpIndex = await findWaypt(currX,currY,slam,arrPos)
-    baseX = arrPos[wpIndex][0]
-    baseY = arrPos[wpIndex][1]
-    baseTheta = arrPos[wpIndex][2]
-    #await moveToPos(base,slam,baseX,baseY,baseTheta)
-    return wpIndex
 
 async def computeAng(slam, target_angle):
     currPos = await slam.get_position()
@@ -44,8 +30,6 @@ async def moveAngle(base,slam,target_angle):
     while np.abs(toMove)>1:
         toMove = await computeAng(slam,target_angle)
         await base.spin(toMove/2, 45)
-
-
 
 async def moveToPos(base, slam, x,y,theta):
     print("move to point call")
@@ -60,47 +44,13 @@ async def moveToPos(base, slam, x,y,theta):
     print (f'want y={y}')
     target_angle_rad = np.arctan2(y - currY, x - currX)
     target_angle = np.degrees(target_angle_rad)
-    #toMove = (target_angle - currTheta + 180) % 360 -180 
     print(f'moving to angle: {target_angle}')
-    dist = getDist(currX,currY,x,y)
-    """    for i in range (5):
-        await moveAngle(base,slam,target_angle)
-        await base.move_straight(int(dist/5),400)
-        """
     while getDist(currX,currY,x,y)>83:
         currPos = await slam.get_position()
         currX = currPos.x
         currY = currPos.y
         await moveAngle(base,slam,target_angle)
         await base.move_straight(30,400)
-        
-        dist = getDist(currX,currY,x,y)
-
-
-
-
-
-
-
-        
-    #await base.spin(toMove, 45)
-    #await base.move_straight(int(dist),200)
-"""    while np.abs(currTheta-target_angle)>7:
-        if currTheta<theta:
-            await base.spin(5,45)
-        else:
-            await base.spin(-5,45)
-        currPos = await slam.get_position()
-        currTheta = currPos.theta
-    while np.abs(target_angle-currTheta)>5:
-        toMove = (target_angle - currTheta + 180) % 360 -180
-        print(currTheta)
-        await base.spin(toMove, 45)
-        currPos = await slam.get_position()
-        await asyncio.sleep(0.1)
-        currTheta = currPos.theta"""
-        
-   
 
 async def findWaypt(x,y,slam, arrPos):
     print("going to new position")
@@ -133,21 +83,15 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             wpIndex = 0
         elif next >= len(posArr):
             next = 0
-
-        #await asyncio.sleep(0.1)
-
         pos = await slam.get_position()
         currX = pos.x
         currY = pos.y
         c = await findWaypt(currX,currY,slam,posArr)
         if np.abs(currX-posArr[wpIndex][0])>200 or np.abs(currY-posArr[wpIndex][1])>200:
             print("NOT CLOSEST")
-                
-
             print(c)
             await moveToPos(base,slam,posArr[c][0],posArr[c][1],posArr[c][2])
             await asyncio.sleep(0.5)
-
             wpIndex = c
             next = c+1
         else:
@@ -160,41 +104,6 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             next = wpIndex+1
         if wpIndex ==len(posArr):
             break
-    
-        
-"""
-async def goThroughPath(base,slam,wpIndex, posArr):
-    #iterate through waypoints
-    #check if the next point is within 50 mm of the current pos
-    #if not, use the goto function on the closest position
-    # if so, use the go to function on the next position in the posArr 
-    pos = await get_position(slam)
-    currX = pos.x
-    currY = pos.y
-    wpX = posArr[wpIndex][0]
-    wpY = posArr[wpIndex][1]
-    wpTheta = posArr[wpIndex][2]
-    dist = getDist(currX,currY,wpX,wpY)
-    await moveToPos(base,slam,wpX,wpY,wpTheta)
-    currX = pos.x
-    currY = pos.y
-    if dist <300:
-        await moveToPos(base,slam,wpX,wpY,wpTheta)
-        wpIndex+=1
-        if wpIndex <len(posArr):
-            await goThroughPath(base,slam,wpIndex,posArr)
-    else:
-        wpIndex = await closestToPath(base,slam,posArr)
-        await goThroughPath(base,slam,wpIndex,posArr)"""
-
-    
-
-
-        
-
-
-
-
 
 async def main():
     robot = await connect()
