@@ -159,7 +159,7 @@ async def goThroughPath(orig,base,slam,wpIndex, posArr):
             
             next = wpIndex+1
         if wpIndex ==orig:
-                break
+            break
     
         
 """
